@@ -6,7 +6,7 @@ The major steps of the workflow for this study included training dataset assembl
 
 All analyses were performed using the freely available R statistical software platform (v4.3.0)
 
-An R-markdown file allowing the application of the model to novel chemicals and species
+Use CurrentScripts/PFAS_QSAR_MakePredictions_060622.R to make predictions for novel chemicals and species
 
 Dataset assembly is described in detail in the Supplemental Information (S1.1). 
 

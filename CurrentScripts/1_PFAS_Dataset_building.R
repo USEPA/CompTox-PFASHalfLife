@@ -1,7 +1,12 @@
+# Clear the workspace:
+
+#load necessary packages:
 rm(list=ls())
 packages=c("readxl","openxlsx", "httk")
 sapply(packages, require,character.only=TRUE) #Note, the "character.only" argument is necessary her
-suff="JFW060522"
+
+# Identify which run we're creating:
+suff="JFW100322"
 
 #In this script, we are using PFAS 1/2 life data curated by Chris Lau recently(as of 2/2020) from various species and PFAS chemicals. 
 #We are then combinining it with information from Oliver 1968, endogenous compound similarity from Prachi, Critical Micelle Concentration
@@ -16,8 +21,8 @@ suff="JFW060522"
 #Merging Oliver 1968 information on Kidney physiological parameters
 
 
-#New datas
-df=read.xlsx("PFAS_HLH_Revised_DED_060121_matched_names.xlsx", sheet =1)
+#New data
+df=read.xlsx("PFAS_HalfLifeData/PFAS_HLH_Revised_DED_060121_matched_names.xlsx", sheet =1)
 
 #Note: there are 89 lines
 
@@ -149,6 +154,8 @@ H[which(H$PREFERRED_NAME=="Perfluorobutanesulfonate"), which(names(H)=="PREFERRE
 
 df5=merge(df4, H, by=c("PREFERRED_NAME", "Species"), all.x=TRUE)
 dim(df5)
+save(df5,file=paste0("RData/PredictorSet_pre-interpolation_", suff))
+
 ##Input missing data within chemical 
 
 ##Columns to try to fill in#
@@ -185,8 +192,13 @@ for(j in 1:length(checkcols)){
 subset(df7,select=checkcols)
 dim(df7)
 #Filling in Kidney data: Use linear regressions using logKW or BW 
-kidney=read.xlsx("Predictors/Oliver 1968_SupplementalData_DED011520.xlsx", sheet =2)
-kidney$Log10Neph_Num=log10(kidney$Neph_Num)
+kidney=read.xlsx("Predictors/Oliver 1968_SupplementalData_JFW100322.xlsx", sheet =2)[1:11,]
+kidney$Neph_Num <- as.numeric(kidney$Neph_Num)
+kidney$BW <- as.numeric(kidney$BW)
+kidney$KW <- as.numeric(kidney$KW)
+kidney$GlomSA <- as.numeric(kidney$GlomSA)
+
+kidney[!is.na(kidney$Neph_Num),"Log10Neph_Num"]=log10(kidney[!is.na(kidney$Neph_Num),"Neph_Num"])
 kidney$Log10BW=log10(kidney$BW)
 kidney$Log10KW=log10(kidney$KW)
 k1=na.omit(kidney)
@@ -290,6 +302,9 @@ df8=df7[,-c(which(names(df7)%in%kidneynames))]
 df8=merge(df8, kidney, by.x="Species", by.y="Mammal", all.x=TRUE)
 dim(df8)
 
+save(kidney, file=paste0("RData/Kidney_Predictions_MultSpecies_", suff,".RData"))
+
+
 #Lastly, add opera predictors;
 #NOte, it looks like I'll have to grab average mass from outside this dataset
 #Also, these are notes from the OPERA application documentation
@@ -316,7 +331,7 @@ dim(df8)
 
 
 #Add opera predictions enerated by OpERA program(stand alone application v2.6), not pulled from dashboard
-opera=read.csv("Predictors/PFAS_11Chem_List-txt_OPERA2.6Pred.csv")
+opera=read.csv("Predictors/DSSToxPFAS_DTXSID_SMILES_Oct21-1-smi_OPERA2.7Pred.csv")
 idvec=which(names(opera)%in%c("MoleculeID"))
 op=which(grepl('\\AD_' , names(opera)) |  grepl('\\_pred$' , names(opera))) #Note, the grepl command here is looking for "_pred", you have to preceed this with \\ to look for this literal. Also, the $ is an end of line anchor
 #notop=which(grepl('\\AD_index' , names(opera))) #Note, the grepl command here is looking for "_pred", you have to preceed this with \\ to look for this literal. Also, the $ is an end of line anchor
@@ -335,7 +350,7 @@ opera=opera[,-c(which(names(opera)=="SpAD_Dzm"))]
 
 
 #Determine applicability for modeling here based on AD information
-models=c("LogP", "MP", "BP", "VP", "WS", "HL", "RT", "KOA","pKa", "LogD","AOH", "BCF", "BioDeg", "ReadyBiodeg", "KM", "LogKoc" )
+models=c("LogP", "MP", "BP", "VP", "WS", "HL", "RT", "KOA","pKa", "LogD")
 for(i in 1:length(models)){
   glob=opera[,which(names(opera)==paste0("AD_", models[i]))]
   local=opera[,which(names(opera)==paste0("AD_index_", models[i]))]
@@ -403,7 +418,7 @@ pfasds=df12
 #NOte: Check suffix before saving
 suff
 pfasds$TrainOrder=seq(1:length(pfasds[,1]))
-save(pfasds, file=paste("PFAS_11Chemicals_QSARdataset_", suff, ".RData", sep=""))
+save(pfasds, file=paste("RData/PFAS_11Chemicals_QSARdataset_", suff, ".RData      ", sep=""))
 unique(pfasds$DTXSID)
 
 

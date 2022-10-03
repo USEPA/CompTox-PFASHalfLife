@@ -8,14 +8,15 @@
 
 # Clear the workspace:
 rm(list=ls())
+try(dev.off())
 
 # Change to the shared drive:
 #setwd("L:/Lab/NCCT_ExpoCast/ExpoCast2022/Dawson_PFAS_HALFLIFE/PFAS_HL_QSAR_2021")
 
 # Specify which RData files we are working with:
-modelbuildsuff="JFW060622-noLogD" 
-trainingsetsuff="JFW060522"
-writesuff="JFW060622-noLogD" #This is the suffix for ongoing work. 
+modelbuildsuff="JFW100322" 
+trainingsetsuff="JFW100322"
+writesuff="JFW100322" #This is the suffix for ongoing work. 
 
 # Random number geenerator seed:
 seed <- "12345"
@@ -67,9 +68,9 @@ dim(PFASdata)
 PFASdata <- subset(PFASdata, !duplicated(DTXSID))
 dim(PFASdata)
 
-saveRDS(PFASdata, file="DSSToxList_For_Example.rds")
+saveRDS(PFASdata, file="PFAS_Catalog/DSSToxList_For_Example.rds")
 write.table(PFASdata[,c("QSAR_READY_SMILES","DTXSID")], file=
-  paste("DSSToxPFAS_DTXSID_SMILES_",
+  paste("PFAS_Catalog/DSSToxPFAS_DTXSID_SMILES_",
   writesuff,
   ".smi", sep=""), 
   row.names = FALSE, 
@@ -78,13 +79,14 @@ write.table(PFASdata[,c("QSAR_READY_SMILES","DTXSID")], file=
   sep="\t"  )
 
  #Output to Opera
-write.table(PFASdata[,c("QSAR_READY_SMILES","DTXSID")], paste("DSSToxPFAS_DTXSID_SMILES_",
+write.table(PFASdata[,c("QSAR_READY_SMILES","DTXSID")], 
+            paste("PFAS_Catalog/DSSToxPFAS_DTXSID_SMILES_",
   writesuff,
   ".smi", sep=""), row.names = FALSE, quote=FALSE, col.names = FALSE, sep="\t"  )
 
 
 #1. Bring in variables from models 
-load(paste0("PFAS_Training_Set_Endo_Disc_HLH_unscaled_",modelbuildsuff,".RData", sep=""))
+load(paste0("RData/PFAS_Training_Set_Endo_Disc_HLH_unscaled_",modelbuildsuff,".RData", sep=""))
 # Load pfasdsrd for name index:
 pfasdsredHLH=pfasdsred
 
@@ -95,7 +97,7 @@ AllVars <- names(pfasdsredHLH)
 PFASdata <- subset(PFASdata, select=c("DTXSID", "PREFERRED_NAME", "CASRN"))
 
 #3. Merge with Opera predictors
-Opera <- read.csv(paste0("PFAS_Catalog/DSSToxPFAS_DTXSID_SMILES_Oct21-1-smi_OPERA2.7Pred.csv"))
+Opera <- read.csv(paste0("Predictors/DSSToxPFAS_DTXSID_SMILES_Oct21-1-smi_OPERA2.7Pred.csv"))
 
 ##Reduce to only variable columns of interest, and also pull AD info 
 names(Opera)
@@ -126,8 +128,8 @@ PFASdata1=merge(PFASdata, Opera, by.x="DTXSID", by.y="MoleculeID", all.x=TRUE)
 
 ####Check against training data
 # Load pfads:
-load(paste0("PFAS_11Chemicals_QSARdataset_",trainingsetsuff,".RData", sep="")) #loads pfasds
-load(paste0("Training_Data_Reorder_For_Prediction_",modelbuildsuff,".RData")) #pfasdsorder
+load(paste0("RData/PFAS_11Chemicals_QSARdataset_",trainingsetsuff,".RData", sep="")) #loads pfasds
+load(paste0("RData/Training_Data_Reorder_For_Prediction_",modelbuildsuff,".RData")) #pfasdsorder
 pfasds=pfasds[pfasdsreorder,]
 head(pfasds)
 #Select out predictor columns
@@ -243,8 +245,8 @@ ps #Good, maintaining similar descretized similarity values
 #########
 #Next, merge in kidney data to create slots for different species
 ###Adding in Sex to Kidney dataset 
-load(file="Predictors/Kidney_Predictions_MultSpecies_DED032921.RData")
-load(paste0("Kidney_Descriptors_in_Training_Set_",trainingsetsuff,".RData"))
+load(paste0("RData/Kidney_Predictions_MultSpecies_",trainingsetsuff,".RData"))
+load(paste0("RData/Kidney_Descriptors_in_Training_Set_",trainingsetsuff,".RData"))
 
 
 kidney=dplyr::rename(kidney, "Species"="Mammal")
@@ -329,7 +331,7 @@ COC <- subset(COC,!is.na(COC_aliphatic))
 dim(COC)
 COC <- subset(COC,!duplicated(DTXSID))
 dim(COC)
-save(COC, file="PFAS_COC_DSSTox.RData")
+save(COC, file="RData/PFAS_COC_DSSTox.RData")
 
 
 PFASdata5=merge(PFASdata4, COC, by="DTXSID")
@@ -390,7 +392,7 @@ removemissing=which(missdat>2) #Will need to remove from IDcols and categorical 
 PFASdata7=PFASdata7[-removemissing,]
 
 #Load averages of training set 
-load(paste0("Mean_SD_Trainingset_",modelbuildsuff,".RData"))
+load(paste0("RData/Mean_SD_Trainingset_",modelbuildsuff,".RData"))
 
 #Input averages of trainset for the rest for rest
 for(i in 1:ncol(PFASdata7)){
@@ -427,7 +429,7 @@ which(is.na(PFASdata7)) #Should be zero
 pfastopred=cbind(PFASdata7cat, PFASdata7sc)
 
 #######Training data check
-load(file=paste0("PFAS_QSAR_Predictors_Predictions_", modelbuildsuff,".RData"))
+load(file=paste0("RData/PFAS_QSAR_Predictors_Predictions_", modelbuildsuff,".RData"))
 pfasdsred1=data.frame(pfasds[,idcols], pfasds[,catcols],pfasdsredsc_ds)
 ps=cbind(IDcols,PFASdata7cat,PFASdata7sc)
 ps=ps[which(ps$DTXSID%in%pfasdsred1$DTXSID),]
@@ -462,7 +464,7 @@ set=rbind(ps[,c("DTXSID","TSPC_107.92.6", "AVERAGE_MASS", "LogWS_pred", "LogP_pr
 #pfastopred_regRed=predict(regmodred, newdata = pfastopred)
 
 #Classification model predictions 
-load(paste0("ClassificationModel_4Bin_EndoSimDisc_HLH_",modelbuildsuff,".RData"))
+load(paste0("RData/ClassificationModel_4Bin_EndoSimDisc_HLH_",modelbuildsuff,".RData"))
 set.seed(seed)
 pfastopred_classFull=predict(classmod4, newdata = pfastopred) #Need to re-arrange the order
 
@@ -480,11 +482,11 @@ completedataset=data.frame(IDcols[,c("CASRN", "DTXSID")], OperaADcols, pfastopre
 #7060 #pretty close agreement between the complete and reduced model 
 
 
-save(completedataset, file=paste("PFAS_HLpreds_HLH_HLHLSsc_DSSToxchemicals_coarse_imputation_",writesuff,".RData", sep="")) 
+save(completedataset, file=paste("RData/PFAS_HLpreds_HLH_HLHLSsc_DSSToxchemicals_coarse_imputation_",writesuff,".RData", sep="")) 
 #load(paste("PFAS_HLpreds_HLH_HLHLSsc_DSSToxchemicals_coarse_imputation_",writesuff,".RData", sep=""))
 length(unique(completedataset$CASRN))
 # Load medians of the four bins:
-load(paste("Median_HLH_per_Bin_4_",
+load(paste("RData/Median_HLH_per_Bin_4_",
   modelbuildsuff,
   ".RData",sep=""))
 agtabHLH
@@ -570,10 +572,11 @@ DPFASwAD=data.frame(CMFAD[,-c(which(names(CMFAD)%in%c("SImin",  "SImax", "SImean
 # 
 # 
 # DPFASwAD$PerLS=PerLS
+
 DPFASwAD$AMAD <- apply(DPFASwAD[,Operacols[regexpr("AD",Operacols)>-1]],1,prod)
 
-save(DPFASwAD, file=paste0("Tox21_AllMods_ADindicate_", writesuff,".RData"))
-write.csv(DPFASwAD, file=paste0("Tox21_AllMods_ADindicate_", writesuff,".csv"))
+save(DPFASwAD, file=paste0("RData/Tox21_AllMods_ADindicate_", writesuff,".RData"))
+write.csv(DPFASwAD, file=paste0("RData/Tox21_AllMods_ADindicate_", writesuff,".csv"))
 #load(file=paste0("Tox21_AllMods_ADindicate_", writesuff,".RData"))
 #DPFASwAD=read.csv(paste0("Tox21_AllMods_ADindicate_", writesuff,".csv"))
 DPFASwAD[DPFASwAD$DTXSID=="DTXSID8047553" & DPFASwAD$Species=="Human",]
@@ -644,19 +647,8 @@ DPFASwAD[which(DPFASwAD$CASRN=="13252-13-6" & DPFASwAD$Species=="Human"),]
 #Regression model putting it at 7615 hours for the full model and 12019 hours for the reduced model 
 
 #Proportions of predictions for humans
-humanAD=DPFASwAD[DPFASwAD$Species=="Human" & 
-  DPFASwAD$Sex=="Male" & 
-  DPFASwAD$DosingAdj=="Other" &
-  DPFASwAD$ClassModDomain==1,]
-table(humanAD$ClassPredFull)/sum(table(humanAD$ClassModDomain))
-
-#Proportions of predictions for humans
-humanAMAD=DPFASwAD[DPFASwAD$Species=="Human" & 
-  DPFASwAD$Sex=="Male" & 
-  DPFASwAD$DosingAdj=="Other" &
-  DPFASwAD$AMAD==1,]
-table(humanAMAD$ClassPredFull)/sum(table(humanAMAD$ClassModDomain))
-
+human=DPFASwAD[DPFASwAD$Species=="Human" & DPFASwAD$Sex=="Male" & DPFASwAD$DosingAdj=="Other",]
+table(human$ClassPredFull)/sum(table(human$ClassModDomain))
 
 #########Compare with training set chemicals
 ps=DPFASwAD[which(DPFASwAD$DTXSID%in%pfasdsredsc_ds$DTXSID),]
@@ -720,7 +712,6 @@ Plot_Species_by_Sex=ggplot(data=in.domain[in.domain$DosingAdj=="IV",], aes(x=Spe
   geom_bar(stat="identity")+
   xlab("Species/Sex")+
   ylab("Number of PFAS chemicals")+
-  
   ggtitle(paste("A) Toxicokinetic Half-Life of ",length(unique(in.domain$DTXSID)), " PFAS Chemicals in Model Domain",sep=""))+
   scale_fill_discrete(name="Serum Half Life", labels = c("<0.5 Day", "<Week", "< 2 Months", "> 2 Months"))+   
   theme(
@@ -739,8 +730,10 @@ Plot_Species_by_Sex=
                              "Mouse_Female"=namelabelsSex[7], "Mouse_Male"=namelabelsSex[8], "Rat_Female"=namelabelsSex[9], 
                              "Rat_Male"=namelabelsSex[10]))
 
-Plot_Species_by_Sex
-png(paste("Figures/THalfPred_Species_by_Sex_",writesuff,".png",sep=""), width=800, height=600)
-Plot_Species_by_Sex
+print(Plot_Species_by_Sex)
+jpeg(paste("Figures/THalfPred_Species_by_Sex_",writesuff,".jpg",sep=""), width=800, height=600)
+print(Plot_Species_by_Sex)
 dev.off()
+
+head(in.domain[,Operacols[regexpr("AD",Operacols)>-1]])
 

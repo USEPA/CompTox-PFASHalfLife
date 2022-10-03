@@ -1,13 +1,17 @@
+# Clear the workspace:
+rm(list=ls())
+try(dev.off())
+
 #remotes::install_github('aberHRML/classyfireR')
 library(classyfireR)
 library(readxl)
 library(data.table) 
 library(purrr)
 library(tidyr)
-suff <- "060622-noLogD" #Note, this is the suffix for previous work on this page
+suff <- "JFW100322-noLogD" #Note, this is the suffix for previous work on this page
 seed <- "12345"
-trainingsetsuff="JFW060522"
-writesuff<-"060622-noLogD"
+trainingsetsuff="JFW100322"
+writesuff<-"JFW100322-noLogD"
 
 
 #IN this script, we are going to read in all of the chemicals from the DSSTox dataset to see how
@@ -16,7 +20,7 @@ writesuff<-"060622-noLogD"
 # Read in data
 #setwd('L:/Lab/NCCT_ExpoCast/ExpoCast2021/Dawson_PFAS_HALFLIFE/PFAS_HL_QSAR_2021')
 #PFASChems <- read_excel("All_Chemicals_CatModDomain_CompToxDashboard_",writesuff,".xlsx", sheet=2)
-PFASChems <- read.csv(paste("AllChemicals_in_CatMod_Domain_",writesuff,".csv",sep=""))
+PFASChems <- read.csv(paste("RData/AllChemicals_in_CatMod_Domain_",writesuff,".csv",sep=""))
 
 #Pre-processing
 PFASdata=read_excel("PFAS_Catalog/DSSTox-PFAS-MasterList.xlsx",sheet=2)
@@ -57,14 +61,14 @@ dim(PFASdata)
 
 #Writeout PFAS data to get inchikeys on comptox dashboard
 #write.csv(PFASdata, file=paste0("All_PFAS_DSSTox_", writesuff, ".csv"))
-PFASdata=read.csv("DSSTox_AllPFAS_with_INCHI_030722.csv")
+PFASdata=read.csv("PFAS_Catalog/DSSTox_AllPFAS_with_INCHI_030722.csv")
 length(which(is.na(PFASdata$INCHIKEY))) #All have INCHIKeys
 
 #Get classifications for all of the chemicals on the PFAS data list
 inchiloc=which(names(PFASdata)=="INCHIKEY")
 classifylist=sapply(PFASdata[,inchiloc], get_classification)
-saveRDS(classifylist, file=paste0("ClassyFire_output_PFAS_Chems_DSSTox_HLHClassMod_Domain_",writesuff,".rds"))
-classifylist=readRDS(paste0("ClassyFire_output_PFAS_Chems_DSSTox_HLHClassMod_Domain_",writesuff,".rds"))
+saveRDS(classifylist, file=paste0("RData/ClassyFire_output_PFAS_Chems_DSSTox_HLHClassMod_Domain_",writesuff,".rds"))
+classifylist=readRDS(paste0("RData/ClassyFire_output_PFAS_Chems_DSSTox_HLHClassMod_Domain_",writesuff,".rds"))
 classifylist[[1]]
 
 #Parse out the columns

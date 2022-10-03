@@ -29,3 +29,17 @@ Per- and polyfluoroalkyl substances (PFAS) are a diverse group of man-made chemi
 * Richard S. Judson [judson.richard@epa.gov]
 * Rogelio Tornero-Velez [tornero-velez.rogelio@epa.gov]
 * John F. Wambaugh [wambaugh.john@epa.gov] 
+
+##
+
+To replicate the results, clone this archive and then use R to run the scripts
+in /CurrentScripts in order:
+* 1_PFAS_Dataset_building.R
+* 2_PFAS_ML_ModelBuilding.R
+* 3_PFAS_ML_MakePredictions.R
+* 4_PFAS_ML_ModelBuilding_NoLogD.R
+* 5_PFAS_ML_MakePredictions_NoLogD.R
+* 6_PFAS_ML_Figs_Restricted_by_AD.R
+* 7_ClassyFire_of_DomainChemicals.R
+* 8_Make_Fig3.R
+* 9_ReportedResults.R

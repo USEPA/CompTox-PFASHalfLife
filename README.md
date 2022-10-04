@@ -43,3 +43,4 @@ in /CurrentScripts in order:
 * 7_ClassyFire_of_DomainChemicals.R  (this step takes a long time and outputs do not vary unless you change the chemical structures)
 * 8_Make_Fig3.R
 * 9_ReportedResults.R
+

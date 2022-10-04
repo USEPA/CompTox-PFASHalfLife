@@ -40,6 +40,6 @@ in /CurrentScripts in order:
 * 4_PFAS_ML_ModelBuilding_NoLogD.R
 * 5_PFAS_ML_MakePredictions_NoLogD.R
 * 6_PFAS_ML_Figs_Restricted_by_AD.R
-* 7_ClassyFire_of_DomainChemicals.R
+* 7_ClassyFire_of_DomainChemicals.R  (this step takes a long time and outputs do not vary unless you change the chemical structures)
 * 8_Make_Fig3.R
 * 9_ReportedResults.R

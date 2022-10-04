@@ -1,8 +1,13 @@
-readsuff <- "060622-noLogD"
+# Clear the workspace:
+rm(list=ls())
+try(dev.off())
 
-library(ggplot)
+readsuff <- "JFW100322-noLogD"
+writesuff <- "JFW100422-noLogD"
 
-load(paste("ClassyfierSubSets_",readsuff,".RData",sep=""))
+library(ggplot2)
+
+load(paste("RData/ClassyfierSubSets_",readsuff,".RData",sep=""))
 
 #Now, plot out the distribution for the alkyl halides, carboxylic acids and sulfonic acid derivatives
 #Insert male and female symbols
@@ -46,11 +51,11 @@ Plot_Species_by_Sex=
                              "Mouse_Female"=namelabelsSex[7], "Mouse_Male"=namelabelsSex[8], "Rat_Female"=namelabelsSex[9], 
                              "Rat_Male"=namelabelsSex[10]))
 
-
-Plot_Species_by_Sex
-png(paste("Figures/PFAS_DSSTox_",length(unique(TCSub$DTXSID)),"_TrainingClassSubset_ClassPred_ClassMod_Sp_Sex_",writesuff,".png",sep=""), width=800, height = 668)
-Plot_Species_by_Sex
-dev.off()
+ 
+print(Plot_Species_by_Sex)
+jpeg(paste("Figures/PFAS_DSSTox_",length(unique(TCSub$DTXSID)),"_TrainingClassSubset_ClassPred_ClassMod_Sp_Sex_",writesuff,".jpg",sep=""), width=800, height = 668)
+print(Plot_Species_by_Sex)
+try(dev.off())
 
 #Human stats
 HAMAD=TCSub[TCSub$Species=="Human" & TCSub$DosingAdj=="Other" & TCSub$Sex=="Female",]
@@ -64,16 +69,5 @@ RAMADM=TCSub[TCSub$Species=="Rat" & TCSub$DosingAdj=="Other" & TCSub$Sex=="Male"
 table(RAMADF$ClassPredFull)/sum(table(RAMADF$ClassPredFull))
 table(RAMADM$ClassPredFull)/sum(table(RAMADF$ClassPredFull))
 
-
-
-##Export table for SI
-#Join DPFASwAD with classification table 
-ExportTab=merge(DPFASwAD, PFASdata1[,c("DTXSID", "PREFERRED_NAME", "INCHIKEY","kingdom", "superclass", "class","subclass")], by="DTXSID", all.x=TRUE )
-write.csv(ExportTab, file=paste0("MasterExport_ModPred_AD_TK_CF_", writesuff,".csv"))
-TDADex=TDAD[,c(1,4:11,26:29,38:41,66,65,43,45:60,63,64)]
-
-unique(DPFASwAD$Species)
-
-head(DPFASwAD)
 
 

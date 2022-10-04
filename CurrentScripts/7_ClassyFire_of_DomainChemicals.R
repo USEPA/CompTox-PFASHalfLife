@@ -97,7 +97,7 @@ for (i in c(1:length(classifylist))){
 
 
 #Read in list of domains and extract out only chemical for humans in the AMAD
-load(file=paste0("Tox21_AllMods_ADindicate_", writesuff,".RData"))
+load(file=paste0("RData/Tox21_AllMods_ADindicate_", writesuff,".RData"))
 ds=subset(DPFASwAD, Species%in%c("Human", "Monkey", "Mouse", "Rat", "Dog"))
 ds$SpeciesSex=paste0(ds$Species, "_", ds$Sex)
 ds$SpeciesDose=paste0(ds$Species, "_", ds$DosingAdj)
@@ -108,14 +108,14 @@ ds$SpeciesDose=paste0(ds$Species, "_", ds$DosingAdj)
 #PFASdata=as.data.table(PFASdata)
 
 TotalDataset=merge(PFASdata1,ds, by="DTXSID")
-saveRDS(TotalDataset, paste0("ClassyFire_PFAS_DSSTox_HLHClassMod_AllData_", writesuff,".rds")) 
-TD=readRDS(paste0("ClassyFire_PFAS_DSSTox_HLHClassMod_AllData_", writesuff,".rds"))
+saveRDS(TotalDataset, paste0("RData/ClassyFire_PFAS_DSSTox_HLHClassMod_AllData_", writesuff,".rds")) 
+TD=readRDS(paste0("RData/ClassyFire_PFAS_DSSTox_HLHClassMod_AllData_", writesuff,".rds"))
 #TD=TotalDataset
 TD=as.data.frame(TD)
 
 #Refining down to only Human, Female, Other dosing,AMAD; previous check found that IV/Oral dosing and male have the same chemicals
 
-load(paste0("PFAS_11Chemicals_QSARdataset_",trainingsetsuff,".RData", sep="")) #loads pfasds
+load(paste0("RData/PFAS_11Chemicals_QSARdataset_",trainingsetsuff,".RData", sep="")) #loads pfasds
 Trainchem=unique(pfasds$DTXSID)
 Trainchemsub=TD[which(TD$DTXSID%in%Trainchem),]
 Trainchemsub=Trainchemsub[Trainchemsub$Species=="Human" & Trainchemsub$DosingAdj=="Other" & Trainchemsub$Sex=="Female",]
@@ -178,7 +178,6 @@ df3$Per=df3$Freq/sum(df3$Freq) #11% are alkyl fluorides, 24% are not classified,
 df3$CumPer=cumsum(df3$Per)#; unclassified, alkyl flourides, fatty acids and conjugates
 dim(df3)
 
-table(TDAD$subclass)
 table(AMAD$subclass)
 table(Trainchemsub$subclass)
 table(Trainchemsub$level5)
@@ -188,16 +187,9 @@ table(Trainchemsub$level5)
 
 
 #Proportion of chemicals from training class making up domains
-length(which(TDAD$class=="Alkyl halides" | TDAD$class== "Carboxylic acids and derivatives" | TDAD$class=="Organic sulfonic acids and derivatives"))/dim(TDAD)[1]  
-
-
-
-#Proportion of chemicals from training class making up domains
 length(which(AMAD$class=="Alkyl halides" | AMAD$class== "Carboxylic acids and derivatives" | AMAD$class=="Organic sulfonic acids and derivatives"))/dim(AMAD)[1]  
 
 
-dt=data.frame(table(TDAD$subclass)/sum(table(TDAD$subclass)))
-dt=dt[order(dt$Freq),]
 am=data.frame(table(AMAD$subclass)/sum(table(AMAD$subclass)))
 dim(table(Trainchemsub$class))
 
@@ -205,7 +197,7 @@ dim(table(Trainchemsub$class))
 
 
 #Now, can parse by the two domains(HLHDomain, AMAD):
-AMAD=TotalDataset
+AMAD=as.data.frame(TotalDataset)
 OUT=AMAD[c(AMAD$AD_LogP==0 | AMAD$AD_VP==0 | AMAD$AD_WS==0) & AMAD$ClassModDomain==1 & AMAD$Species=="Human" & AMAD$Sex=="Female" & AMAD$DosingAdj=="Other",]
 dim(OUT)
 
@@ -227,9 +219,9 @@ dim(WSLPVP)[1]/3248
 
 
 #Parse which opera domains have trouble, and need some additional research
-table(TDAD$AD_LogP)/sum(table(TDAD$AD_LogP))
-table(TDAD$AD_VP)/sum(table(TDAD$AD_VP))
-table(TDAD$AD_WS)/sum(table(TDAD$AD_WS))
+table(AMAD$AD_LogP)/sum(table(AMAD$AD_LogP))
+table(AMAD$AD_VP)/sum(table(AMAD$AD_VP))
+table(AMAD$AD_WS)/sum(table(AMAD$AD_WS))
 
 
 ###TK outputs for PFOA and PFOS
@@ -249,11 +241,11 @@ TCSub$Count=1
 hist(as.numeric(NotTCSub$AVERAGE_MASS.x))
 hist(as.numeric(TCSub$AVERAGE_MASS.x), add=TRUE, col="blue")
 
-save(NotTCSub,TCSub,AMAD,file=paste("ClassyfierSubSets_",writesuff,".RData",sep=""))
+save(NotTCSub,TCSub,AMAD,file=paste("RData/ClassyfierSubSets_",writesuff,".RData",sep=""))
 
 library(ggplot2)
 
-load(paste("ClassyfierSubSets_",readsuff,".RData",sep=""))
+load(paste("RData/ClassyfierSubSets_",writesuff,".RData",sep=""))
 
 #Now, plot out the distribution for the alkyl halides, carboxylic acids and sulfonic acid derivatives
 #Insert male and female symbols
@@ -322,11 +314,12 @@ table(RAMADM$ClassPredFull)/sum(table(RAMADF$ClassPredFull))
 ##Export table for SI
 #Join DPFASwAD with classification table 
 ExportTab=merge(DPFASwAD, PFASdata1[,c("DTXSID", "PREFERRED_NAME", "INCHIKEY","kingdom", "superclass", "class","subclass")], by="DTXSID", all.x=TRUE )
-write.csv(ExportTab, file=paste0("MasterExport_ModPred_AD_TK_CF_", writesuff,".csv"))
+write.csv(ExportTab, file=paste0("RData/MasterExport_ModPred_AD_TK_CF_", writesuff,".csv"))
 TDADex=TDAD[,c(1,4:11,26:29,38:41,66,65,43,45:60,63,64)]
 
 unique(DPFASwAD$Species)
 
 head(DPFASwAD)
+save(DPFASwAD,file="RDAta/")
 
 

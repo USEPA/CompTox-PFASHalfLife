@@ -4,26 +4,26 @@ library(caret)
 library(data.table)
 
 #setwd("L:/Lab/NCCT_ExpoCast/ExpoCast2022/Dawson_PFAS_HALFLIFE/PFAS_HL_QSAR_2021")
-readsuff="JFW060622-noLogD" 
+readsuff="JFW100322-noLogD" 
 
-load(file=paste("ClassificationModel_3Bin_EndoSimDisc_HLH_", readsuff, ".RData",sep=""))
-load(file=paste("ClassificationModel_4Bin_EndoSimDisc_HLH_", readsuff, ".RData",sep=""))
-load(file=paste("ClassificationModel_5Bin_EndoSimDisc_HLH_", readsuff, ".RData",sep=""))
-load(file=paste("ClassificationModel_PostRFE_HLHBin4_", readsuff, ".RData", sep=""))
-load(file=paste("ClassificationModel_YRand_HLHBin4_", readsuff, ".RData", sep=""))
-load(file=paste0("Tox21_AllMods_ADindicate_", readsuff,".RData"))
+load(file=paste("RData/ClassificationModel_3Bin_EndoSimDisc_HLH_", readsuff, ".RData",sep=""))
+load(file=paste("RData/ClassificationModel_4Bin_EndoSimDisc_HLH_", readsuff, ".RData",sep=""))
+load(file=paste("RData/ClassificationModel_5Bin_EndoSimDisc_HLH_", readsuff, ".RData",sep=""))
+load(file=paste("RData/ClassificationModel_PostRFE_HLHBin4_", readsuff, ".RData", sep=""))
+load(file=paste("RData/ClassificationModel_YRand_HLHBin4_", readsuff, ".RData", sep=""))
+load(file=paste0("RData/Tox21_AllMods_ADindicate_", readsuff,".RData"))
            
 # Abstract
 print(paste("The classification model had an average accuracy of, ",
   percent(classmod4$results[["Accuracy"]],accuracy=0.1),
-  " Â± ",
+  " Ã‚Â± ",
   percent(classmod4$results[["AccuracySD"]],accuracy=0.1),
   " across species and chemicals.",
   sep=""))
 
 print(paste("In contrast, y-randomized training data had an average accuracy of ",
   percent(classmod4YROverall$results[["Accuracy"]],accuracy=0.1),
-  " ± ",
+  " Â± ",
   percent(classmod4YROverall$results[["AccuracySD"]],accuracy=0.1),
   ".",
   sep="")) 
@@ -31,19 +31,19 @@ print(paste("In contrast, y-randomized training data had an average accuracy of 
 
 # Y-Randomization:
 
-print(paste0("A model using t½ values randomized across all species-by-PFAS combinations had low predictive value (accuracy of ",
+print(paste0("A model using tÂ½ values randomized across all species-by-PFAS combinations had low predictive value (accuracy of ",
   percent(classmod4YROverall$results[["Accuracy"]],accuracy=0.1),
-  " ± ",
+  " Â± ",
   percent(classmod4YROverall$results[["AccuracySD"]],accuracy=0.1),
-  "). However, the models fit with t½ values randomized within species (accuracy of ",
+  "). However, the models fit with tÂ½ values randomized within species (accuracy of ",
   percent(classmod4YRspecies$results[["Accuracy"]],accuracy=0.1),
-  " ± ",
+  " Â± ",
   percent(classmod4YRspecies$results[["AccuracySD"]],accuracy=0.1),
   ") and within chemicals (accuracy of ",
   percent(classmod4YRchem$results[["Accuracy"]],accuracy=0.1),
-  " ± ",
+  " Â± ",
   percent(classmod4YRchem$results[["AccuracySD"]],accuracy=0.1),
-  ") did show that some variation t½ is accounted for by differences at the species and chemical level."))
+  ") did show that some variation tÂ½ is accounted for by differences at the species and chemical level."))
 
 
 
@@ -64,7 +64,7 @@ humanAD.F <- DPFASwAD[DPFASwAD$Species=="Human" &
 humanAD.F <-table(humanAD.F$ClassPredFull)/sum(table(humanAD.F$ClassModDomain))
 print(paste0("For these ",
   length(unique(in.domain$DTXSID)),
-  " chemicals, human t½ was predicted to be distributed such that ",
+  " chemicals, human tÂ½ was predicted to be distributed such that ",
   percent(humanAD.F[["4"]]),
   " were classified in Bin 4, ",
   percent(humanAD.F[["3"]]),
@@ -108,7 +108,7 @@ print(paste("Cohens's Kappa{Tarald, 1989} was ",
        signif(classmod4$results[["Kappa"]],3), ", and ",
        signif(classmod5$results[["Kappa"]],3), ", respectively.",sep=""))       
 
-load(paste0("ClassMod_RFE_FullSet_", readsuff,".RData"))
+load(paste0("RData/ClassMod_RFE_FullSet_", readsuff,".RData"))
 
 # The accuracies and kapps below all are not as good as the 16 variable model:
 rfeClass$results

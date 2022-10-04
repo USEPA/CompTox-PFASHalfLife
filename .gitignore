@@ -1,0 +1,7 @@
+###################
+# Don't track content of these files
+###################
+RData/MasterExport_ModPred_AD_TK_CF_*
+RData/All_DSSTox_Predictions_With_Domains_*
+RData/Tox21_AllMods_ADindicate_*
+Old/

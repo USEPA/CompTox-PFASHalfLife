@@ -220,22 +220,29 @@ plot(kidney$Log10KW, Log10Neph_Num_pred, log="xy")
 text(kidney$Log10KW, Log10Neph_Num_pred,  labels=kidney$Mammal) 
 kidney$Log10Neph_Num_pred=Log10Neph_Num_pred
 
-#Glomular surface area 
+#Glomerular surface area 
 #mod1=lm(GlomSA ~ Log10BW, data=k1[-c(which(k1$Mammal=="Elephant" | k1$Mammal=="Whale")), ])
 #summary(mod1)
 #plot(k1$Log10BW, k1$GlomSA, log="x")
 #text(k1$Log10BW, k1$GlomSA,  labels=k1$Mammal) 
 #abline(a=mod1$coefficients[1], b=mod1$coefficients[2], untf=TRUE)
-mod2=lm(GlomSA ~ Log10KW, data=k1[-c(which(k1$Mammal=="Elephant" | k1$Mammal=="Whale")),])
+k1$Log10GlomSA <- log10(k1$GlomSA)
+mod2 <- lm(Log10GlomSA ~ Log10KW, data=k1[-c(which(k1$Mammal=="Elephant" | k1$Mammal=="Whale")),])
+# Glomerular surface area model accuracy:
 summary(mod2)
-plot(k1$Log10KW, k1$GlomSA, log="xy")
-text(k1$Log10KW, k1$GlomSA,  labels=k1$Mammal) 
+plot(k1$Log10KW, k1$Log10GlomSA)
+text(k1$Log10KW, k1$Log10GlomSA,  labels=k1$Mammal) 
 abline(a=mod2$coefficients[1], b=mod2$coefficients[2], untf=TRUE)
 
-GlomSA_pred=predict(mod2,data.frame(Log10KW=log10(kidney$KW))) 
-plot(kidney$Log10BW, GlomSA_pred, log="x")
-text(kidney$Log10BW, GlomSA_pred,  labels=kidney$Mammal) 
-kidney$GlomSA_pred=GlomSA_pred
+Log10GlomSA_pred <- predict(mod2, data.frame(Log10KW=log10(kidney$KW))) 
+plot(kidney$Log10BW, Log10GlomSA_pred, log="x")
+text(kidney$Log10BW, Log10GlomSA_pred,  labels=kidney$Mammal) 
+kidney$GlomSA_pred <- 10^Log10GlomSA_pred
+
+plot(kidney$GlomSA, kidney$GlomSA_pred, log="xy")
+text(kidney$GlomSA, kidney$GlomSA_pred,  labels=kidney$Mammal) 
+
+
 
 #Note concerned about mouse and chicken. Mouse looks very small; Chicken lines up with monkey's and rabbits
 

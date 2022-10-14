@@ -68,6 +68,16 @@ print(paste0("When applied to USEPA’s largest list of ",
 # Results 3.1
 print("RESULTS 3.1")
 print("FIRST PARAGRAPH")
+  
+fit.all <- lm(HLH~BW,data=pfasds) 
+fit.pfoa <- lm(HLH~BW,data=subset(pfasds,CASRN=="335-67-1"))
+ 
+print(paste0("For PFOA we found the TK t½ scales across species with bodyweight, (R2 ~ ",
+      signif(summary(fit.pfoa)$adj.r.squared,2),
+      ") however this was clearly so not for the other chemicals in our data set (R2 = ",
+      signif(summary(fit.all)$adj.r.squared,2),
+      " for whole data set)."))
+         
 print(paste("The models had cross-validated accuracies of ",
        percent(classmod3$results[["Accuracy"]],accuracy=0.1), ", ",
        percent(classmod4$results[["Accuracy"]],accuracy=0.1), ", and ",
@@ -90,11 +100,11 @@ print(paste0("A model using t½ values randomized across all species-by-PFAS com
   percent(classmod4YROverall$results[["Accuracy"]],accuracy=0.1),
   " ± ",
   percent(classmod4YROverall$results[["AccuracySD"]],accuracy=0.1),
-  "). However, the models fit with t½ values randomized within species (accuracy of ",
+  "). However, the models fit with t½ values randomized within species but not chemicals (accuracy of ",
   percent(classmod4YRspecies$results[["Accuracy"]],accuracy=0.1),
   " ± ",
   percent(classmod4YRspecies$results[["AccuracySD"]],accuracy=0.1),
-  ") and within chemicals (accuracy of ",
+  ") and within chemicals but not species (accuracy of ",
   percent(classmod4YRchem$results[["Accuracy"]],accuracy=0.1),
   " ± ",
   percent(classmod4YRchem$results[["AccuracySD"]],accuracy=0.1),
@@ -107,16 +117,7 @@ print(paste0("A model using t½ values randomized across all species-by-PFAS com
 
 # In thalf model domain:
 
-print(paste0("For these ",
-  length(unique(in.domain$DTXSID)),
-  " chemicals, human t½ was predicted to be distributed such that ",
-  percent(humanAD.F[["4"]]),
-  " were classified in Bin 4, ",
-  percent(humanAD.F[["3"]]),
-  " were classified in Bin 3, and ",
-  percent(humanAD.F[["2"]]),
-  " were classified in Bin 2."))
-   
+
 # In AM domain:
 in.AM.domain <- subset(DPFASwAD,AMAD==1&Species%in%c("Mouse","Rat","Monkey","Human"))
 
@@ -132,11 +133,13 @@ humanAMAD.F <- DPFASwAD[DPFASwAD$Species=="Human" &
   DPFASwAD$AMAD==1,]
 humanAMAD.F <-table(humanAMAD.F$ClassPredFull)/sum(table(humanAMAD.F$ClassModDomain))
 
-print(paste0("For humans a majority (",
-  percent(humanAMAD.F[["2"]]),
-  ") of this subset of chemicals were predicted to fall into Bin 2, followed by ",
+print("RESULTS 3.2.2")
+print("SECOND PARAGRAPH")
+print(paste0("For humans (over both sexes and dosing methods), a majority (",
   percent(humanAMAD.F[["4"]]),
-  " in Bin 4 and ",
+  ") of this subset of chemicals were predicted to fall into Bin 4, followed by ",
+  percent(humanAMAD.F[["2"]]),
+  " in Bin 2 and ",
   percent(humanAMAD.F[["3"]]),
   " in Bin 3."))
 
@@ -183,13 +186,3 @@ print(paste0("Further restricting chemicals to those also within the ADs of the 
   " of the ",
   length(unique(DPFASwAD$DTXSID)),
   "."))
-  
-fit.all <- lm(HLH~BW,data=pfasds) 
-fit.pfoa <- lm(HLH~BW,data=subset(pfasds,CASRN=="335-67-1"))
- 
-print(paste0("For PFOA we found the TK t½ scales across species with bodyweight, (R2 ~ ",
-      signif(summary(fit.pfoa)$adj.r.squared,2),
-      ") however this was clearly so not for the other chemicals in our data set (R2 = ",
-      signif(summary(fit.all)$adj.r.squared,2),
-      " for whole data set)."))
-         

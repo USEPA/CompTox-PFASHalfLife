@@ -133,6 +133,19 @@ humanAMAD.F <- DPFASwAD[DPFASwAD$Species=="Human" &
   DPFASwAD$AMAD==1,]
 humanAMAD.F <-table(humanAMAD.F$ClassPredFull)/sum(table(humanAMAD.F$ClassModDomain))
 
+print("RESULTS 3.2.1")
+print("FIRST PARAGRAPH")
+
+print(paste0("we found that the majority (",
+  percent(length(unique(subset(DPFASwAD,ClassModDomain==1)$DTXSID)) / length(unique(DPFASwAD$DTXSID))),
+  ") of these chemicals fall into the domain of the model (Fig. 3A)."))
+  
+print(paste0("Further restricting chemicals to those also within the ADs of the OPERA models serving as model predictors (AM domain, that is, intersection of All Model ADs) potentially further reduces the list to ",
+  length(unique(subset(DPFASwAD,AMAD==1)$DTXSID)),
+  " of the ",
+  length(unique(DPFASwAD$DTXSID)),
+  "."))
+
 print("RESULTS 3.2.2")
 print("SECOND PARAGRAPH")
 print(paste0("For humans (over both sexes and dosing methods), a majority (",
@@ -149,7 +162,7 @@ print(paste0("For humans (over both sexes and dosing methods), a majority (",
 
 
 
-# The accuracies and kapps below all are not as good as the 16 variable model:
+# The accuracies and kapps below all are not as good as the 15 variable model:
 rfeClass$results
 
 # It looks like any of the models with >2 variables has accuracy > 0.8:
@@ -159,30 +172,8 @@ varImp(rfeClass)
 varImp(classmod4,scale=FALSE)
 varImp(classmod4)
 
-# Occurence of different bins for humans:
 
 
-  print(paste0(length(unique(subset(DPFASwAD,Species=="Human" & ClassModDomain==1)$DTXSID)),
-  " of ",
-  length(unique(subset(DPFASwAD,Species=="Human")$DTXSID)),
-  " chemicals are within the AD."))
 
 
-    print(paste0("For humans a majority (",
-  percent(humanAD.F[["4"]]),
-  ") of this subset of chemicals were predicted to fall into Bin 4, followed by ",
-  percent(humanAD.F[["2"]]),
-  " in Bin 2, and ",
-  percent(humanAD.F[["3"]]),
-  " in Bin 1."))
-  
-print(paste0("we found that the majority (",
-  percent(length(unique(subset(DPFASwAD,ClassModDomain==1)$DTXSID)) / length(unique(DPFASwAD$DTXSID))),
-  ") of these chemicals fall into the domain of the model."))
 
-
-print(paste0("Further restricting chemicals to those also within the ADs of the OPERA models serving as model predictors (All Model ADs / AMAD) potentially further reduces the list to ",
-  length(unique(subset(DPFASwAD,AMAD==1)$DTXSID)),
-  " of the ",
-  length(unique(DPFASwAD$DTXSID)),
-  "."))

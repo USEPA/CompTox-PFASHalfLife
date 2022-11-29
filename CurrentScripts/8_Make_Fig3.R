@@ -70,4 +70,31 @@ table(RAMADF$ClassPredFull)/sum(table(RAMADF$ClassPredFull))
 table(RAMADM$ClassPredFull)/sum(table(RAMADF$ClassPredFull))
 
 
+Plot_Species_by_Sex=ggplot(data=pfascountCFSS[pfascountCFSS$DosingAdj=="Other",], aes(x=SpeciesSex, y=Count, fill=ClassPredFull)) +
+  geom_bar(stat="identity")+
+  xlab("Species/Sex")+
+  ylab("Number of PFAS chemicals")+
+  ggtitle(paste("B) ",length(unique(TCSub$DTXSID)), " PFAS Chemicals Matching Training Set Class",sep=""))+
+  scale_fill_discrete(name="Serum Half Life", labels = c("<0.5 Day", "<Week", "< 2 Months", "> 2 Months"))+   
+  theme(
+    plot.title=element_text(size =20), 
+    # plot.subtitle = element_text(size=17),
+    axis.text.x =element_text(size=15, vjust=0.3, hjust=0.5),
+    axis.text.y=element_text(size=15),
+    axis.title=element_text(size=20),
+    legend.position="none",
+    legend.text=element_text(size=15),
+    legend.title=element_text(size=20))
+Plot_Species_by_Sex=
+  Plot_Species_by_Sex+  
+  scale_x_discrete(labels= c("Dog_Female" = namelabelsSex[1], "Dog_Male"=namelabelsSex[2], "Human_Female"=namelabelsSex[3],
+                             "Human_Male"=namelabelsSex[4],"Monkey_Female"=namelabelsSex[5], "Monkey_Male"=namelabelsSex[6], 
+                             "Mouse_Female"=namelabelsSex[7], "Mouse_Male"=namelabelsSex[8], "Rat_Female"=namelabelsSex[9], 
+                             "Rat_Male"=namelabelsSex[10]))
+
+
+Plot_Species_by_Sex
+png(paste("Figures/THalfPred_Species_by_Sex_B_",writesuff,".png",sep=""), width=800, height=550)
+Plot_Species_by_Sex
+dev.off()
 

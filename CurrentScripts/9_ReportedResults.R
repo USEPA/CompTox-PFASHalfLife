@@ -212,10 +212,36 @@ print(paste0("For humans (over both sexes and dosing methods), a majority (",
              percent(humanAMAD.F[["3"]]),
              " in Bin 3."))
 
+print("RESULTS 3.2.3")
+print("FIRST PARAGRAPH")
+
+print(paste0("we found that ",
+             length(unique(subset(DPFASwAD, ClassModDomain==1)$DTXSID)),
+             " PFAS were within the AD. Restricting predictions to only those chemicals whose properties were within the ADs of the OPERA predictors reduced this to ",
+             length(unique(subset(DPFASwAD,AMAD==1)$DTXSID)),
+             " PFAS. Alternatively, using the ClassyFire chemical structure ontology [96] restricted predictions to ",
+             length(unique(TCSub$DTXSID)),
+             " PFAS."))
+
+print("SECOND PARAGRAPH")
+
+load(file=paste0("RData/Tox21_AllMods_ADindicate_", readsuff.data,".RData"))
+logdindomain <- length(unique(subset(DPFASwAD,ClassModDomain==1)$DTXSID))
+load(file=paste0("RData/Tox21_AllMods_ADindicate_", readsuff,".RData"))
+
+print(paste0("increased the number of chemicals for which predictions could be made (from ",
+             logdindomain,
+             " to ",
+             length(unique(subset(DPFASwAD,ClassModDomain==1)$DTXSID)),
+             ")."))
+
 
 print("RESULTS 3.3")
 print("SECOND PARAGRAPH")
-print(paste0('The majority (52%) of PFAS were predicted to be in the longest t½ category in humans. '))
+
+print(paste0("The majority (",
+  percent(humanAD.F[["4"]]),
+  ") of PFAS were predicted to be in the longest t½ category in humans. "))
 
 
 

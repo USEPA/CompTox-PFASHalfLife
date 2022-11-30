@@ -118,8 +118,29 @@ print("TABLE THREE")
 # Importance:
 varImp(classmod4,scale=FALSE)
 varImp(classmod4)
+imp <- varImp(classmod4)
+imp <- data.frame(imp$importance)
+imp$Descriptor <- rownames(imp)
+imp$Class <- "Other"
+imp[imp$Descriptor %in% c(
+  "GlomTotSA_KW_ratio"
+  "ProxTubDiam"), "Class"] <- "Kidney"
+imp[imp$Descriptor %in% c(
+  "AVERAGE_MASS",
+  "LogP_pred",
+  "LogVP_pred",
+  "LogWS_pred",
+  "LogKOA_pred"), "Class"] <- "OPERA"
+imp[imp$Descriptor %in% c(
+  "TSPC_107.92.6",
+  "TSPC_142.62.1",
+  "TSPC_111.16.0"), "Class"] <- "Endogenous"
+gabstract <- ggplot(imp, aes(x=Descriptor, y=Overall, fill=Class)) +
+  geom_bar(stat="identity")+
+# Horizontal bar plot
+  coord_flip()
 
-
+print(gabstract)
 # In thalf model domain:
 
 

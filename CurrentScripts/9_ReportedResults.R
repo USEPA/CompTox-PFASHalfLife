@@ -87,16 +87,16 @@ print(paste("Cohens's Kappa {Tarald, 1989} was ",
        signif(classmod3$results[["Kappa"]],3), ", ",
        signif(classmod4$results[["Kappa"]],3), ", and ",
        signif(classmod5$results[["Kappa"]],3), ", respectively.",sep=""))                  
-conf <- classmod4$finalModel$confusion
-conf <- conf[,-ncol(conf)]
-oob <- 1 - (sum(diag(conf))/sum(conf))
-print(paste0("The four-bin model has an error rate of ",
-       percent(oob),
-       " and a no information rate of ",
-             percent(max(apply(conf,1,sum))/100),
-             ". The no information rate is an effective \"null hypothesis\" in which all chemicals were predicted to be in the most common bin."))     
-          
-print("SECOND PARAGRAPH")
+
+print("TABLE THREE")
+# Importance:
+varImp(classmod4,scale=FALSE)
+varImp(classmod4)
+
+
+# Results 3.2
+print("RESULTS 3.2")
+print("FIRST PARAGRAPH")
 print(paste0("A model using t½ values randomized across all species-by-PFAS combinations had low predictive value (accuracy of ",
   percent(classmod4YROverall$results[["Accuracy"]],accuracy=0.1),
   " ± ",
@@ -114,52 +114,64 @@ print(paste0("A model using t½ values randomized across all species-by-PFAS com
 # The accuracies and kappas below all are not as good as the 15 variable model:
 rfeClass$results
 
-print("TABLE THREE")
-# Importance:
-varImp(classmod4,scale=FALSE)
-varImp(classmod4)
-imp <- varImp(classmod4)
-imp <- data.frame(imp$importance)
-imp$Descriptor <- rownames(imp)
-imp$Class <- "Other"
-imp[imp$Descriptor %in% c(
-  "GlomTotSA_KW_ratio"
-  "ProxTubDiam"), "Class"] <- "Kidney"
-imp[imp$Descriptor %in% c(
-  "AVERAGE_MASS",
-  "LogP_pred",
-  "LogVP_pred",
-  "LogWS_pred",
-  "LogKOA_pred"), "Class"] <- "OPERA"
-imp[imp$Descriptor %in% c(
-  "TSPC_107.92.6",
-  "TSPC_142.62.1",
-  "TSPC_111.16.0"), "Class"] <- "Endogenous"
-gabstract <- ggplot(imp, aes(x=Descriptor, y=Overall, fill=Class)) +
-  geom_bar(stat="identity")+
-# Horizontal bar plot
-  coord_flip()
+print("THIRD PARAGRAPH")
 
-print(gabstract)
-# In thalf model domain:
+conf <- classmod4$finalModel$confusion
+conf <- conf[,-ncol(conf)]
+oob <- 1 - (sum(diag(conf))/sum(conf))
+print(paste0("The four-bin model is has an accuracy of ",
+             percent(classmod4$results[["Accuracy"]],accuracy=0.1),
+             " compared to the no information rate of ",
+             percent(max(apply(conf,1,sum))/100),
+             ". The no information rate is an effective \"null hypothesis\" in which all chemicals were predicted to be in the most common bin."))     
 
+# Calculate human-specific no information rate:
+human.ds <- subset(pfasds,Species=="Human")
+human.bin4 <-human.ds$HLH>60*24
+human.ds$ClassObs <- 4
+human.ds[human.ds$HLH < 60*24,"ClassObs"] <- 3
+human.ds[human.ds$HLH < 7*24,"ClassObs"] <- 2
+human.pred <- subset(DPFASwAD,DTXSID%in%human.ds$DTXSID & Species=="Human" & DosingAdj =="Oral")
+human.conf <- matrix(0,nrow=4,ncol=4)
+for (this.chem in unique(human.ds$DTXSID))
+{
+  this.subset <- subset(human.ds, DTXSID==this.chem)
+  for (this.sex in unique(this.subset$Sex))
+  {
+    this.row <- this.subset[this.subset$Sex==this.sex,"ClassObs"]
+    this.col <- human.pred[human.pred$DTXSID==this.chem & human.pred$Sex == this.sex, "ClassPredFull"]
+    human.conf[this.row,this.col] <- human.conf[this.row,this.col] +1
+  }
+}   
 
 # In AM domain:
 in.AM.domain <- subset(DPFASwAD,AMAD==1&Species%in%c("Mouse","Rat","Monkey","Human"))
 
 humanAMAD.M <- DPFASwAD[DPFASwAD$Species=="Human" & 
-  DPFASwAD$Sex=="Male" & 
-  DPFASwAD$DosingAdj=="Other" &
-  DPFASwAD$AMAD==1,]
+                          DPFASwAD$Sex=="Male" & 
+                          DPFASwAD$DosingAdj=="Other" &
+                          DPFASwAD$AMAD==1,]
 humanAMAD.M <-table(humanAMAD.M$ClassPredFull)/sum(table(humanAMAD.M$ClassModDomain))
 
 humanAMAD.F <- DPFASwAD[DPFASwAD$Species=="Human" & 
-  DPFASwAD$Sex=="Female" & 
-  DPFASwAD$DosingAdj=="Other" &
-  DPFASwAD$AMAD==1,]
+                          DPFASwAD$Sex=="Female" & 
+                          DPFASwAD$DosingAdj=="Other" &
+                          DPFASwAD$AMAD==1,]
 humanAMAD.F <-table(humanAMAD.F$ClassPredFull)/sum(table(humanAMAD.F$ClassModDomain))
 
-print("RESULTS 3.2.1")
+print(paste0("Since ",
+             percent(sum(human.bin4)/length(human.bin4)),
+             " of human thalf fall into Bin 4 (the longest thalf), we can consider both the model accuracy (",
+             percent(sum(diag(human.conf))/sum(apply(human.conf,1,sum))),
+             " for humans) and the prevalence of predicted Bin 4 chemicals for humans across broader PFAS (",
+             percent(humanAD.F[["4"]]),
+             ", as discussed in the following section) relative to this species-specific no information rate."))
+
+# Results 3.3
+print("RESULTS 3.3")
+
+
+print("RESULTS 3.3.1")
 print("FIRST PARAGRAPH")
 
 print(paste0("we found that the majority (",
@@ -217,13 +229,13 @@ print(paste0("Distributions of predicted t� for A) ",
 
              
              
-print("RESULTS 3.2.2")
+print("RESULTS 3.3.2")
 print("SECOND PARAGRAPH")
 
 
 
 
-print("RESULTS 3.2.2")
+print("RESULTS 3.3.2")
 print("SECOND PARAGRAPH")
 print(paste0("For humans (over both sexes and dosing methods), a majority (",
              percent(humanAMAD.F[["4"]]),
@@ -233,7 +245,7 @@ print(paste0("For humans (over both sexes and dosing methods), a majority (",
              percent(humanAMAD.F[["3"]]),
              " in Bin 3."))
 
-print("RESULTS 3.2.3")
+print("RESULTS 3.3.3")
 print("FIRST PARAGRAPH")
 
 print(paste0("we found that ",
@@ -257,7 +269,7 @@ print(paste0("increased the number of chemicals for which predictions could be m
              ")."))
 
 
-print("RESULTS 3.3")
+print("RESULTS 3.4")
 print("SECOND PARAGRAPH")
 
 print(paste0("The majority (",
@@ -266,7 +278,37 @@ print(paste0("The majority (",
 
 
 
+# Graphical abstract:
+imp <- varImp(classmod4)
+imp <- data.frame(imp$importance)
 
+imp$Descriptor <- rownames(imp)
+
+imp$Descriptor <- factor(imp$Descriptor, 
+                         levels=(imp$Descriptor[order(imp$Overall)]))
+
+imp$Class <- "Other"
+imp[imp$Descriptor %in% c(
+  "GlomTotSA_ProxTubTotVol_ratio",
+  "GlomTotSA_KW_ratio",
+  "ProxTubDiam"), "Class"] <- "Kidney"
+imp[imp$Descriptor %in% c(
+  "AVERAGE_MASS",
+  "LogP_pred",
+  "LogVP_pred",
+  "LogWS_pred",
+  "LogKOA_pred"), "Class"] <- "OPERA"
+imp[imp$Descriptor %in% c(
+  "TSPC_107.92.6",
+  "TSPC_142.62.1",
+  "TSPC_111.16.0"), "Class"] <- "Endogenous"
+gabstract <- ggplot(imp, aes(x=Descriptor, y=Overall, fill=Class)) +
+  geom_bar(stat="identity")+
+  # Horizontal bar plot
+  coord_flip() +
+  ylab("Importance")
+
+print(gabstract)
 
 
 

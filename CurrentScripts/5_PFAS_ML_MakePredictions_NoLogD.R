@@ -500,10 +500,14 @@ agtabHLH$CLtot.Lpkgbwpday
 # 1 mg/kg BW/day dose rate -> Css (mg/L)
 agtabHLH$Css.mgpL <- signif(1/agtabHLH$CLtot.Lpkgbwpday,3)
 
+colnames(agtabHLH)[2] <- "HalfLife.h"
+
+completedataset$HalfLife.h <- NA
+completedataset$kelim.h <- NA
 completedataset$CLtot.Lpkgbwpday <- NA
 completedataset$Css.mgpL <- NA
 for (this.bin in seq(1,4))
-  for (this.col in c("CLtot.Lpkgbwpday","Css.mgpL"))
+  for (this.col in c("HalfLife.h","kelim.h","CLtot.Lpkgbwpday","Css.mgpL"))
     completedataset[completedataset[,"ClassPredFull"]==this.bin, this.col] <-
       agtabHLH[agtabHLH[,"HLHBin4"]==this.bin, this.col]
       
@@ -574,6 +578,12 @@ DPFASwAD=data.frame(CMFAD[,-c(which(names(CMFAD)%in%c("SImin",  "SImax", "SImean
 # DPFASwAD$PerLS=PerLS
 
 DPFASwAD$AMAD <- apply(DPFASwAD[,Operacols[regexpr("AD",Operacols)>-1]],1,prod)
+
+# Set reasonable sigfigs:
+for (this.col in c(11:22,25:29))
+{
+  DPFASwAD[,this.col] <- signif(DPFASwAD[,this.col],4)
+}
 
 save(DPFASwAD, file=paste0("RData/Tox21_AllMods_ADindicate_", writesuff,".RData"))
 write.csv(DPFASwAD, file=paste0("RData/Tox21_AllMods_ADindicate_", writesuff,".csv"))

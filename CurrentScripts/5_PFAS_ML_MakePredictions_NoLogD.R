@@ -501,13 +501,14 @@ agtabHLH$CLtot.Lpkgbwpday
 agtabHLH$Css.mgpL <- signif(1/agtabHLH$CLtot.Lpkgbwpday,3)
 
 colnames(agtabHLH)[2] <- "HalfLife.h"
+colnames(agtabHLH)[3] <- "kelim.1ph"
 
 completedataset$HalfLife.h <- NA
-completedataset$kelim.h <- NA
+completedataset$kelim.1ph <- NA
 completedataset$CLtot.Lpkgbwpday <- NA
 completedataset$Css.mgpL <- NA
 for (this.bin in seq(1,4))
-  for (this.col in c("HalfLife.h","kelim.h","CLtot.Lpkgbwpday","Css.mgpL"))
+  for (this.col in c("HalfLife.h","kelim.1ph","CLtot.Lpkgbwpday","Css.mgpL"))
     completedataset[completedataset[,"ClassPredFull"]==this.bin, this.col] <-
       agtabHLH[agtabHLH[,"HLHBin4"]==this.bin, this.col]
       

@@ -1,0 +1,31 @@
+CASRN: (https://comptox.epa.gov/dashboard/)
+DTXSID: (https://comptox.epa.gov/dashboard/)	
+AD_LogP: Is (1 = yes) the chemical within the estimated applicability domain for the log10 octanol:water model of OPERA v2.7 ((https://github.com/kmansouri/OPERA/releases/tag/v2.7-beta2)
+AD_VP:  Is (1 = yes) the chemical within the estimated applicability domain for the vapor pressure model of OPERA v2.7 ((https://github.com/kmansouri/OPERA/releases/tag/v2.7-beta2)
+AD_WS:  Is (1 = yes) the chemical within the estimated applicability domain for the water solubility model of OPERA v2.7 ((https://github.com/kmansouri/OPERA/releases/tag/v2.7-beta2)
+AD_KOA: Is (1 = yes) the chemical within the estimated applicability domain for the octanol:air model of OPERA v2.7 ((https://github.com/kmansouri/OPERA/releases/tag/v2.7-beta2)	
+Species: Species used for prediction
+Sex: Sex used for prediction
+Type: Kidney type of species
+DosingAdj: Dosing route used for prediction
+AVERAGE_MASS: (https://comptox.epa.gov/dashboard/)	
+LogP_pred: The predicted log10 octanol:water partition coefficient from OPERA v2.7 ((https://github.com/kmansouri/OPERA/releases/tag/v2.7-beta2)	
+LogVP_pred: The predicted log10 vapor pressure from OPERA v2.7 ((https://github.com/kmansouri/OPERA/releases/tag/v2.7-beta2)	
+LogWS_pred: The predicted log10 water solubility from OPERA v2.7 ((https://github.com/kmansouri/OPERA/releases/tag/v2.7-beta2)
+LogKOA_pred: The predicted octanol:air partition coefficient from OPERA v2.7 ((https://github.com/kmansouri/OPERA/releases/tag/v2.7-beta2)
+TSPC_107.92.6: Endogenous Ligand Similarity to CAS 107-92-6 (Methods 2.1.2, Table S2.4)	
+TSPC_142.62.1: Endogenous Ligand Similarity to CAS 142-62-1 (Methods 2.1.2, Table S2.4)
+TSPC_111.16.0: Endogenous Ligand Similarity to CAS 111-16-0 (Methods 2.1.2, Table S2.4)
+GlomTotSA_KW_ratio: Glomerular Surface Area/Kidney Weight (mm2/kg) (Tables 2 and S2.4)	
+ProxTubDiam: Proximal tubule diameter (mm) (Tables 2 and S2.4)
+GlomTotSA_ProxTubTotVol_ratio: Glomerular Surface Area/Proximal Tubule Volume (1/mm) (Tables 2 and S2.4)
+COC_aliphatic: Is an ether bond present along the carbon backbone (1 = yes) from ToxPrint chemotypes (https://doi.org/10.1021/ci500667v) (Tables 2 and S2.4)
+Ka_perM_SerAlb_Han: Albumin binding affinity constant (Mol−1) from Han et al. (2012) (https://doi.org/10.1021/tx200363w) (Tables 2 and S2.4)
+ClassPredFull: Predicted toxicokinetic half-life category (1 fastest, 4 slowest)
+HalfLife.h: Predicted toxicokinetic half-life (h)
+kelim.1ph: Predicted toxicokinetic elimination rate (1/h)
+CLtot.Lpkgbwpday: Predicted whole body clearance (L/kg body weight/day) 	
+Css.mgpL: Predicted steady-state plasma concentration (mg/L) assuming constant exposure rate of 1 mg/kg body weight/day
+ClassModSI90: 90% of values should be below this threshold if normally distributed
+ClassModDomain: Is (1 = yes) the chemical within the applicability domain of the half-life model as estimated using the roy et al. (2015) method? 
+AMAD: Is (1 = yes) the chemical within the half-life model applicability domain and the applicability domains (where available) for all property models (“all models applicability domain”) 

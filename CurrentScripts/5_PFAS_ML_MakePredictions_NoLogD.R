@@ -519,14 +519,23 @@ for (this.bin in seq(1,4))
   
 
 ####Applicability Domain####
-#To be consistent with Mansouri et al, if something is in the domain, Domain=1, if outside=0. 
-#If if its in the domain=1, if outside the doma
-#This is only using the method by Roy et al. 2015, using the descriptors that are scaled by those of the training set. So, 
-
-#May need to find some other idea of AD because apparently everythign is out of the AD now
-ADfunction=function(model, data){
+# This function implements the applicability domain estimation method of
+# Roy et al. 2015 (https://doi.org/10.1016/j.chemolab.2015.04.013), 
+# based on the descriptors that are scaled by those of the training set:
+# "...After a descriptor column is standardized based on the corresponding mean 
+# and standard deviation for the training set compounds only, if the 
+# corresponding standardized value for descriptor i of compound k (Ski) is more 
+# than 3, then the compound should be an X-outlier (if in the training set) or 
+# outside AD (if in the test set) based on descriptor i." To be consistent with 
+# Mansouri et al (https://doi.org/10.1186/s13321-018-0263-1) "1" indicates that
+# a chemical is within the applicability domain and "0" indicates the chemical 
+# is outside the domain. 
+ADfunction=function(model, data)
+{
   vars=names(model$trainingData)
   vars=vars[-c(length(vars))] #removes last column which is predictions
+# Separate the numeric descriptors ("a") from the categorical descriptors ("b")
+# and only analyze the numeric descriptors:
   cats=which(vars%in%c("Species", "Sex", "DosingAdj"))
   Vars1=vars
   if(length(cats>0)){
@@ -535,22 +544,26 @@ ADfunction=function(model, data){
   b=a[,c("CASRN", "DTXSID","Species", "Sex",  "DosingAdj")]
   a=a[,which(names(a)%in%Vars1)]
   a=abs(a)
+# Calculate SI -- the standardized value for descriptor "I"
   SImin=apply(a,1,min) #Find the min, max, sd, and mean
   SImax=apply(a,1,max)
   SImean=apply(a,1,mean)
   SIsd=apply(a,1,sd)
   SIdf=data.frame(data,SImin, SImax, SImean, SIsd)
   SIdf$SI90=SIdf$SImean + (1.28 * SIdf$SIsd)
-  SIdf$Domain=1 #something is assumed to be inside the AD unless it it found to not be 
+# Initialize domain variable, chemicals are assumed to be inside the AD 
+# unless found not be: 
+  SIdf$Domain=1 
   
-  #Based Algorithm specificed in Roy et al. 2005)
+# Use Roy et al. (2015) criteria for outside of domain of applicability:
   SIdf$Domain=ifelse(SIdf$SImin>3, 0, ifelse((SIdf$SImean+(1.28*SIsd))>3,0,1))
   
-  return(SIdf)}
+  return(SIdf)
+}
 
-CMFAD=ADfunction(model=classmod4,data=completedataset)
-#RMFAD=ADfunction(model=regmod,data=completedataset)
-#RMRAD=ADfunction(model=regmodred,data=completedataset)
+CMFAD <- ADfunction(model=classmod4,data=completedataset)
+#RMFAD <- ADfunction(model=regmod,data=completedataset)
+#RMRAD <- ADfunction(model=regmodred,data=completedataset)
 
 names(CMFAD)[which(names(CMFAD)=="Domain")]="ClassModDomain"
 #names(RMFAD)[which(names(RMFAD)=="Domain")]="RegFullModDomain"

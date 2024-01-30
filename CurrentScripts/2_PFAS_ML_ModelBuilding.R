@@ -417,7 +417,7 @@ load(paste("RData/ClassificationModel_5Bin_EndoSimDisc_HLH_", writesuff, ".RData
 #You need the "ctrl" object to pass into rfe, but the functions argument of that function could reference the list of other functions, like rfRFE above. 
 #So, if you wanted to use the pickSizeTolerance instead of pickSizeBest, you could simply specify it as the argument for SelectSize above. 
 
-#These are kidney descriptors retaied in the training set 
+#These are kidney descriptors retained in the training set 
 kc=c("BW", "KW", "Neph_Num","KW_BW_ratio","Neph_BW_ratio", "GlomSA",                       
    "GlomTotSA", "GlomTotSA_BW_ratio", "GlomTotSA_KW_ratio", "ProxTubLen", "ProxTubDiam", "ProxTubVol",                   
    "ProxTubSA" , "ProxTubTotalVol", "ProxTubTotSA", "GlomTotSA_ProxTubTotVol_ratio", "ProxTubTotSA_ProxTotVol_ratio")

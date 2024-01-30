@@ -2,19 +2,14 @@
 
 #load necessary packages:
 rm(list=ls())
-packages=c("readxl","openxlsx", "httk")
+packages=c("readxl","httk")
 sapply(packages, require,character.only=TRUE) #Note, the "character.only" argument is necessary her
 
 # Identify which run we're creating:
-suff="JFW100322"
+suff="JFW012924"
 
 #In this script, we are using PFAS 1/2 life data curated by Chris Lau recently(as of 2/2020) from various species and PFAS chemicals. 
-#We are then combinining it with information from Oliver 1968, endogenous compound similarity from Prachi, Critical Micelle Concentration
-#data from Bhhatarai, liver protein disassociation constants from Zhang, Serum Albumin binding constants from Han 
-
-
-#In this script, we are using PFAS 1/2 life data curated by Chris Lau recently(as of 2/2020) from various species and PFAS chemicals. 
-#We are then combinining it with information from Oliver 1968, endogenous compound similarity from Prachi, Critical Micelle Concentration
+#We are then combining it with information from Oliver 1968, endogenous compound similarity from Prachi, Critical Micelle Concentration
 #data from Bhhatarai, liver protein disassociation constants from Zhang, Serum Albumin binding constants from Han 
 
 #setwd("L:/Lab/NCCT_ExpoCast/ExpoCast2020/Dawson_TK_QSAR_PFAS/PFAS_HL_QSAR/ScriptsDataOutput")
@@ -22,82 +17,103 @@ suff="JFW100322"
 
 
 #New data
-df=read.xlsx("PFAS_HalfLifeData/PFAS_HLH_Revised_DED_060121_matched_names.xlsx", sheet =1)
+df <- as.data.frame(read_excel(
+  "PFAS_HalfLifeData/PFAS_HLH_Revised_DED_060121_matched_names.xlsx", 
+  sheet =1))
 
 #Note: there are 89 lines
 
 
-oliver=read.xlsx("Predictors/Oliver 1968 Table IX Single Mammal kidney_DED122019.xlsx", sheet =2)
-oliver$Reference_KidneyPhys="Oliver1968"
-oliver1=oliver[oliver$Mammal%in%unique(df$Species),] #only bring in species that we have PFAS data for. We'll add in  kidney info a bit later for mouse and monkey based on the whole list of species here.  
-df1=merge(df, oliver1, by.x=c("Species"), by.y=c("Mammal"), all.x=TRUE)
+oliver <- as.data.frame(read_excel(
+  "Predictors/Oliver 1968 Table IX Single Mammal kidney_DED122019.xlsx", 
+  sheet =2))
+oliver$Reference_KidneyPhys <- "Oliver1968"
+oliver1 <- oliver[oliver$Mammal%in%unique(df$Species),] #only bring in species that we have PFAS data for. We'll add in  kidney info a bit later for mouse and monkey based on the whole list of species here.  
+df1 <- merge(df, oliver1, by.x=c("Species"), by.y=c("Mammal"), all.x=TRUE)
 
 
 #Note: Using similarity (Jaccard) of both PubChem fingerprints(which simply count whether a compound has certain features)
 
 #Importing endogenous chemical similarity calculated by Prachi Pradeep and Richard Judson
-Endoinfo=read.xlsx("Predictors/DawsonList-HMDBSimilarity.xlsx", sheet = 2)
-names(Endoinfo)=c("CAS_pfas", "DTXSID_pfas", "CAS_endo", "DTXSID_endo","Tanimoto_PC", "Tanimoto_M")
+Endoinfo <- as.data.frame(read_excel(
+  "Predictors/DawsonList-HMDBSimilarity.xlsx", 
+  sheet = 2))
+names(Endoinfo) <- c("CAS_pfas", "DTXSID_pfas", "CAS_endo", "DTXSID_endo","Tanimoto_PC", "Tanimoto_M")
+extrachems <- read.csv(
+  "Predictors/EndoSimilarity/EndoSubset-EPA_PFAS_DSSTox-Similarity_Wambaugh_113023.csv")
+extrachems <- extrachems[,c(2:7)]
+colnames(extrachems) <- names(Endoinfo)
+Endoinfo <- rbind(Endoinfo, extrachems)
 
 #Find the EndoMax and Min, and and fill in tanimoto scores for the max score for each chemical, and then the list of chemicals
 #in the max and min set 
-maxlistPC=NULL
-minlistPC=NULL
-maxlistM=NULL
-minlistM=NULL
+maxlistPC <- NULL
+minlistPC <- NULL
+maxlistM <- NULL
+minlistM <- NULL
 
-EndoinfoPC=Endoinfo[-c(which(is.na(Endoinfo$Tanimoto_PC))),]
-EndoinfoM=Endoinfo[-c(which(is.na(Endoinfo$Tanimoto_M))),]
+EndoinfoPC <- EndoinfoM <- Endoinfo
+EndoinfoPC <- EndoinfoPC[!is.na(Endoinfo$Tanimoto_PC),]
+EndoinfoM <- EndoinfoPC[!is.na(Endoinfo$Tanimoto_M),]
 
 for(i in unique(df1$DTXSID)){
-  sub1=subset(EndoinfoPC, DTXSID_pfas == i)
-  sub2=subset(EndoinfoM, DTXSID_pfas == i)
-  maxlistPC=rbind(maxlistPC, sub1[sub1$Tanimoto_PC == max(sub1$Tanimoto_PC),])
-  minlistPC=rbind(minlistPC, sub1[sub1$Tanimoto_PC == min(sub1$Tanimoto_PC),])
-  maxlistM=rbind(maxlistM,sub2[sub2$Tanimoto_M == max(sub2$Tanimoto_M),])
-  minlistM=rbind(minlistM, sub2[sub2$Tanimoto_M == min(sub2$Tanimoto_M),])
+  sub1 <- subset(EndoinfoPC, DTXSID_pfas == i)
+  sub2 <- subset(EndoinfoM, DTXSID_pfas == i)
+  maxlistPC <- rbind(maxlistPC, 
+                     sub1[sub1$Tanimoto_PC == max(sub1$Tanimoto_PC),])
+  minlistPC <- rbind(minlistPC, 
+                     sub1[sub1$Tanimoto_PC == min(sub1$Tanimoto_PC),])
+  maxlistM <- rbind(maxlistM,sub2[sub2$Tanimoto_M == max(sub2$Tanimoto_M),])
+  minlistM <- rbind(minlistM, sub2[sub2$Tanimoto_M == min(sub2$Tanimoto_M),])
 }
 
 #Max chemicals 
-maxlist1PC=aggregate(Tanimoto_PC~DTXSID_pfas, data=maxlistPC, FUN="mean") #This is in case multiple chemicals had the exact same similarity
-maxlist1M=aggregate(Tanimoto_M~DTXSID_pfas, data=maxlistM, FUN="mean")
+maxlist1PC <- aggregate(Tanimoto_PC~DTXSID_pfas, 
+                        data=maxlistPC, FUN="mean") #This is in case multiple chemicals had the exact same similarity
+maxlist1M <- aggregate(Tanimoto_M~DTXSID_pfas, 
+                       data=maxlistM, FUN="mean")
 
-df2.1=merge(df1, maxlist1PC, by.x="DTXSID", by.y = "DTXSID_pfas", all = TRUE)
+df2.1 <- merge(df1, maxlist1PC, 
+               by.x="DTXSID", by.y = "DTXSID_pfas", all = TRUE)
 names(df2.1)[length(df2.1)]="MaxEndoPC"
-df2.2=merge(df2.1, maxlist1M, by.x="DTXSID", by.y = "DTXSID_pfas", all = TRUE)
+df2.2 <- merge(df2.1, maxlist1M, 
+               by.x="DTXSID", by.y = "DTXSID_pfas", all = TRUE)
 names(df2.2)[length(df2.2)]="MaxEndoM"
 
 #Endoinfo=na.omit(Endoinfo)
 #Max and Min Chemicals
-df2.3=df2.2
-maxminPC=unique(c(maxlistPC$CAS_endo, minlistPC$CAS_endo))
+df2.3 <- df2.2
+maxminPC <- unique(c(maxlistPC$CAS_endo, minlistPC$CAS_endo))
 for(i in maxminPC){
-  sub=Endoinfo[Endoinfo$CAS_endo==i,]  
-  sub=subset(sub, select = c("CAS_pfas", "CAS_endo", "Tanimoto_PC"))
-  df2.3=merge(df2.3, sub[, c("CAS_pfas", "Tanimoto_PC")], by.x="CASRN", by.y="CAS_pfas", all.x=TRUE)
+  sub <- Endoinfo[Endoinfo$CAS_endo==i,]  
+  sub <- subset(sub, select = c("CAS_pfas", "CAS_endo", "Tanimoto_PC"))
+  df2.3 <- merge(df2.3, sub[, c("CAS_pfas", "Tanimoto_PC")], 
+                 by.x="CASRN", by.y="CAS_pfas", all.x=TRUE)
   names(df2.3)[length(df2.3[1,])]=paste("TSPC_",sub$CAS_endo[1],sep="")  
 }
 
 
-maxminM=unique(c(maxlistM$CAS_endo, minlistM$CAS_endo))
+maxminM <- unique(c(maxlistM$CAS_endo, minlistM$CAS_endo))
 for(i in maxminM){
-  sub=Endoinfo[Endoinfo$CAS_endo==i,]  
-  sub=subset(sub, select = c("CAS_pfas", "CAS_endo", "Tanimoto_M"))
-  df2.3=merge(df2.3, sub[, c("CAS_pfas", "Tanimoto_M")], by.x="CASRN", by.y="CAS_pfas", all.x=TRUE)
+  sub <- Endoinfo[Endoinfo$CAS_endo==i,]  
+  sub <- subset(sub, select = c("CAS_pfas", "CAS_endo", "Tanimoto_M"))
+  df2.3 <- merge(df2.3, sub[, c("CAS_pfas", "Tanimoto_M")], 
+              by.x="CASRN", by.y="CAS_pfas", all.x=TRUE)
   names(df2.3)[length(df2.3[1,])]=paste("TSM_",sub$CAS_endo[1],sep="")  
 }
 
 names(df2.3)
 
-df2=df2.3
+df2 <- df2.3
 dim(df2) #should be 89 lines 
 
 #Importing Bhhatrai 2010 Vapor Pressure(VP), Aquatic Solubility(AqS), and Critical Micelle Concentration(CMC) data
-B=read.xlsx("Predictors/Bhhatarai_2010_PFAS_VP_AqS_CMC_data.xlsx")
+B <- as.data.frame(read_excel(
+  "Predictors/Bhhatarai_2010_PFAS_VP_AqS_CMC_data.xlsx"))
 #Replace "-" with NA's 
-B=apply(B,2,function(x){replace(x, which(x=="-"), NA)})
-B=apply(B,2,function(x){sub("\\*\\*", "", x)})
-B=apply(B,2,function(x){sub("\\*", "", x)})
+B <- apply(B,2,function(x){replace(x, which(x=="-"), NA)})
+B <- apply(B,2,function(x){sub("\\*\\*", "", x)})
+B <- apply(B,2,function(x){sub("\\*", "", x)})
 
 #Strip leading zeros off of CAS numbers
 B[,1]=sub("^[0]+", "", B[,1])
@@ -120,7 +136,8 @@ df3=merge(df2, B, by=c("CASRN", "Species"), all.x=TRUE)
 dim(df3)
 
 #Importing Protein Binding Affinity(Dissociation constants) from Zhang et al. 2013
-Z=read.xlsx("Predictors/Zhang et al.2013_PFAS_Protein_Dissociation Constants.xlsx")
+Z <- as.data.frame(read_excel(
+  "Predictors/Zhang et al.2013_PFAS_Protein_Dissociation Constants.xlsx"))
 Z$Species="Human"
 Z$Reference_Kd_hl_FABP="Zhang 2013"
 #Z=Z[-c(which(names(Z)=="ChemicalName"))]
@@ -147,7 +164,8 @@ cbind(df4$CASRN, df4$PREFERRED_NAME, df4$Kd_hL_FABP)
 dim(df4)
 
 #Importing Han et al. 2012
-H=read.xlsx("Predictors/Han_et al.2012_AlbuminProteinBinding_Data.xlsx")
+H <- as.data.frame(read_excel(
+  "Predictors/Han_et al.2012_AlbuminProteinBinding_Data.xlsx"))
 H$Reference_Ka_SerAlb="Han 2011"
 H[which(H$PREFERRED_NAME=="Perfluorobutanesulfonate"), which(names(H)=="PREFERRED_NAME")]<-"Perfluorobutanesulfonic acid"
 
@@ -192,7 +210,8 @@ for(j in 1:length(checkcols)){
 subset(df7,select=checkcols)
 dim(df7)
 #Filling in Kidney data: Use linear regressions using logKW or BW 
-kidney=read.xlsx("Predictors/Oliver 1968_SupplementalData_JFW100322.xlsx", sheet =2)[1:11,]
+kidney <- as.data.frame(read_excel(
+  "Predictors/Oliver 1968_SupplementalData_JFW100322.xlsx", sheet =2))[1:11,]
 kidney$Neph_Num <- as.numeric(kidney$Neph_Num)
 kidney$BW <- as.numeric(kidney$BW)
 kidney$KW <- as.numeric(kidney$KW)
@@ -285,21 +304,44 @@ plot(kidney$KW, kidney$BW)
 
 #Note: Kidney type was altered based on a bit of reading about kidneys so that types were more consistent; essentially changed everything to either unipapillary or multirenculated. 
 
-kidney$Neph_Num<-ifelse(is.na(kidney$Neph_Num), 10^(kidney$Log10Neph_Num_pred), kidney$Neph_Num)
-kidney$GlomSA<-ifelse(is.na(kidney$GlomSA), kidney$GlomSA_pred, kidney$GlomSA)
-kidney$ProxTubLen<-ifelse(is.na(kidney$ProxTubLen), kidney$ProxTubLen_pred, kidney$ProxTubLen)
-kidney$ProxTubDiam<-ifelse(is.na(kidney$ProxTubDiam), kidney$ProxTubDiam_pred, kidney$ProxTubDiam)
-kidney$KW_BW_ratio<-kidney$KW/kidney$BW
-kidney$Neph_BW_ratio<-kidney$Neph_Num/kidney$BW
-kidney$GlomTotSA<-kidney$GlomSA*kidney$Neph_Num
-kidney$GlomTotSA_BW_ratio<-kidney$GlomTotSA/kidney$BW
-kidney$GlomTotSA_KW_ratio<-kidney$GlomTotSA/kidney$KW
-kidney$ProxTubVol<-kidney$ProxTubLen * (kidney$ProxTubDiam/2)^2 * pi 
+kidney$ProxTubLen <- as.numeric(kidney$ProxTubLen)
+kidney$ProxTubDiam <- as.numeric(kidney$ProxTubDiam)
+kidney$Neph_Num <- as.numeric(kidney$Neph_Num)
+kidney$ProxTubVol<-  as.numeric(kidney$ProxTubVol)
+
+kidney$Neph_Num <- 
+  ifelse(is.na(kidney$Neph_Num), 
+         10^(kidney$Log10Neph_Num_pred), kidney$Neph_Num)
+kidney$GlomSA <- 
+  ifelse(is.na(kidney$GlomSA), kidney$GlomSA_pred, kidney$GlomSA)
+kidney$ProxTubLen <- 
+  ifelse(is.na(kidney$ProxTubLen), 
+         kidney$ProxTubLen_pred, kidney$ProxTubLen)
+kidney$ProxTubDiam <- 
+  ifelse(is.na(kidney$ProxTubDiam), 
+         kidney$ProxTubDiam_pred, kidney$ProxTubDiam)
+kidney$KW_BW_ratio <-
+  kidney$KW/kidney$BW
+kidney$Neph_BW_ratio <-
+  kidney$Neph_Num/kidney$BW
+kidney$GlomTotSA <-
+  kidney$GlomSA*kidney$Neph_Num
+kidney$GlomTotSA_BW_ratio <-
+  kidney$GlomTotSA/kidney$BW
+kidney$GlomTotSA_KW_ratio <-
+  kidney$GlomTotSA/kidney$KW
+kidney$ProxTubVol <-
+  kidney$ProxTubLen * 
+  (kidney$ProxTubDiam/2)^2 * pi 
 kidney$ProxTubSA <- kidney$ProxTubLen * kidney$ProxTubDiam * pi
-kidney$ProxTubTotalVol<-kidney$Neph_Num * kidney$ProxTubVol
-kidney$ProxTubTotSA<-kidney$Neph_Num * kidney$ProxTubSA
-kidney$GlomTotSA_ProxTubTotVol_ratio<-kidney$GlomTotSA/kidney$ProxTubTotalVol
-kidney$ProxTubTotSA_ProxTotVol_ratio<-kidney$ProxTubTotSA/kidney$ProxTubTotalVol
+kidney$ProxTubTotalVol <-
+  kidney$Neph_Num * kidney$ProxTubVol
+kidney$ProxTubTotSA <-
+  kidney$Neph_Num * kidney$ProxTubSA
+kidney$GlomTotSA_ProxTubTotVol_ratio <-
+  kidney$GlomTotSA/kidney$ProxTubTotalVol
+kidney$ProxTubTotSA_ProxTotVol_ratio <- 
+  kidney$ProxTubTotSA/kidney$ProxTubTotalVol
 
 ###
 #Join updated kidney stuff with df7
@@ -384,15 +426,17 @@ for(i in endocols){
 dim(df10)
 
 #To account for ether bond, load in aliphatic COC toxprint
-COCbond=read.xlsx("Predictors/toxprint_V2_vs_PFAS_list_Smiles_05_26_20.xlsx", sheet=2)
-df11=merge(df10, COCbond, by="DTXSID", all= TRUE)
+COCbond <- as.data.frame(read_excel(
+  "Predictors/toxprint_V2_vs_PFAS_list_Smiles_05_26_20.xlsx", sheet=2))
+df11 <- merge(df10, COCbond, by="DTXSID", all= TRUE)
 dim(df11)
 
 #Lastly, add a column where halflife is scaled by lifetime
-Lifespan=read.xlsx("Predictors/LifeSpan_from_Risa_05_25_20.xlsx")
-Lifespan=subset(Lifespan, select=c("Species", "HrLifeSpan"))
+Lifespan <- as.data.frame(read_excel(
+  "Predictors/LifeSpan_from_Risa_05_25_20.xlsx"))
+Lifespan <- subset(Lifespan, select=c("Species", "HrLifeSpan"))
 
-df12=merge(df11, Lifespan, by="Species", all.x=TRUE, all.y=FALSE)
+df12 <- merge(df11, Lifespan, by="Species", all.x=TRUE, all.y=FALSE)
 dim(df12)
 
 
@@ -401,7 +445,7 @@ dim(df12)
 #is counted as a carbon(per Chris Lau), and LCChainLength, in which only the longest continously carbon
 #chain is counted.
 
-chainlist=as.data.frame(matrix(c("Perfluoroheptanoic acid",   7,7,
+chainlist <- as.data.frame(matrix(c("Perfluoroheptanoic acid",   7,7,
                                  "Perfluorooctanesulfonic acid",   8,8,
                                  "Perfluorohexanoic acid",   6,6,
                                  "Perfluorodecanoic acid",   10,10,
@@ -412,20 +456,24 @@ chainlist=as.data.frame(matrix(c("Perfluoroheptanoic acid",   7,7,
                                  "Perfluorobutanesulfonic acid",   4,4,
                                  "Perfluorooctanoic acid",  8,8,
                                  "GenX" ,  3, 6), nrow=11, ncol=3, byrow = TRUE))
-names(chainlist)=c("Chemical", "TCChainLength","LCChainLength" )
+names(chainlist) <- c("Chemical", "TCChainLength","LCChainLength" )
 for(i in 1:length(chainlist[,1])){
-  df12[which(df12$PREFERRED_NAME==chainlist[i,1]), "TCChainLength"]=chainlist[i,2]
-  df12[which(df12$PREFERRED_NAME==chainlist[i,1]), "LCChainLength"]=chainlist[i,3]
+  df12[which(df12$PREFERRED_NAME==chainlist[i,1]), "TCChainLength"] <- 
+    chainlist[i,2]
+  df12[which(df12$PREFERRED_NAME==chainlist[i,1]), "LCChainLength"] <- 
+    chainlist[i,3]
 }
 
-df12$TCChainLength=as.numeric(df12$TCChainLength)
-df12$LCChainLength=as.numeric(df12$LCChainLength)
+df12$TCChainLength <- as.numeric(df12$TCChainLength)
+df12$LCChainLength <- as.numeric(df12$LCChainLength)
 
-pfasds=df12
+pfasds <- df12
 #NOte: Check suffix before saving
 suff
-pfasds$TrainOrder=seq(1:length(pfasds[,1]))
-save(pfasds, file=paste("RData/PFAS_11Chemicals_QSARdataset_", suff, ".RData      ", sep=""))
+pfasds$TrainOrder <- seq(1:length(pfasds[,1]))
+save(pfasds, 
+     file=paste("RData/PFAS_11Chemicals_QSARdataset_", 
+                suff, ".RData      ", sep=""))
 unique(pfasds$DTXSID)
 
 

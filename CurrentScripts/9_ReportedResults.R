@@ -16,7 +16,8 @@ load(file=paste0("RData/Tox21_AllMods_ADindicate_", readsuff,".RData"))
 load(file=paste0("RData/PFAS_11Chemicals_QSARdataset_", readsuff.data,".RData"))
 load(paste0("RData/ClassMod_RFE_FullSet_", readsuff,".RData"))
 load(paste("RData/ClassyfierSubSets_",readsuff,".RData",sep=""))
-  
+load(paste0("RData/TrainingDatawithPreds_Bin_4_", readsuff,".RData"))
+
 # Calculate chemicals in domain for humans:
 in.domain <- subset(DPFASwAD,ClassModDomain==1&Species%in%c("Mouse","Rat","Monkey","Human"))
 humanAD.M <- DPFASwAD[DPFASwAD$Species=="Human" & 
@@ -93,6 +94,64 @@ print("TABLE THREE")
 varImp(classmod4,scale=FALSE)
 varImp(classmod4)
 
+# Figure Two:
+#Classification Model:Obs vs predict using mean values for classes
+scientific_10 <- function(x) {                                  
+  out <- gsub("1e", "10^", scientific_format()(x))              
+  out <- gsub("//+","",out)                                     
+  out <- gsub("10//^01","10",out)                               
+  out <- parse(text=gsub("10//^00","1",out))                    
+}  
+
+jitter <- position_jitter(width = 0.3, height = 0)
+ObsPredPlotRFClassFull_Chem_Species <- ggplot(pfasdsfitted, aes(y=HLH, x=Bin4ClassFullMean)) +
+  geom_point(size=7,position = jitter, aes(shape=PREFERRED_NAME,color=Species)) +
+  scale_x_log10(label=scientific_10)+ scale_y_log10(label=scientific_10) +
+  scale_shape_manual(values=c(1,2,3,4,5,6,7,8,9,10,11))+
+  xlab("Classification Model Bin Means of Predicted Serum Half-Life (hr)") +
+  ylab(expression(paste(italic("In vivo"), " Serum Half-Life (hr)",sep=""))) +
+  ggtitle("11 PFAS Chemicals in 4 Species",subtitle = "Random Forest Classification Model")+
+  
+  theme(axis.text=element_text(size=15), 
+        plot.title=element_text(size=20),
+        plot.subtitle = element_text(size=17),
+        axis.title=element_text(size=17),
+        legend.title=element_text(size=20),
+        legend.text=element_text(size=15)) +
+  labs(shape="Chemical")
+
+
+obsplot=ObsPredPlotRFClassFull_Chem_Species +
+  geom_hline(yintercept=24,linetype="dashed", color = "red") +
+  geom_hline(yintercept=168, linetype="dashed", color = "blue") + 
+  geom_hline(yintercept=1440,linetype="dashed", color = "black") 
+
+print(obsplot)
+
+# Fig Two no Jitter:
+ObsPredPlotRFClassFull_Chem_Species <- ggplot(pfasdsfitted, aes(y=HLH, x=Bin4ClassFullMean)) +
+  geom_point(size=7, aes(shape=PREFERRED_NAME,color=Species)) +
+  scale_x_log10(label=scientific_10)+ scale_y_log10(label=scientific_10) +
+  scale_shape_manual(values=c(1,2,3,4,5,6,7,8,9,10,11))+
+  xlab("Classification Model Bin Means of Predicted Serum Half-Life (hr)") +
+  ylab(expression(paste(italic("In vivo"), " Serum Half-Life (hr)",sep=""))) +
+  ggtitle("11 PFAS Chemicals in 4 Species",subtitle = "Random Forest Classification Model")+
+  
+  theme(axis.text=element_text(size=15), 
+        plot.title=element_text(size=20),
+        plot.subtitle = element_text(size=17),
+        axis.title=element_text(size=17),
+        legend.title=element_text(size=20),
+        legend.text=element_text(size=15)) +
+  labs(shape="Chemical")
+
+
+obsplotnojitter=ObsPredPlotRFClassFull_Chem_Species +
+  geom_hline(yintercept=24,linetype="dashed", color = "red") +
+  geom_hline(yintercept=168, linetype="dashed", color = "blue") + 
+  geom_hline(yintercept=1440,linetype="dashed", color = "black") 
+
+print(obsplotnojitter)
 
 # Results 3.2
 print("RESULTS 3.2")

@@ -15,8 +15,8 @@ try(dev.off())
 
 # Specify which RData files we are working with:
 modelbuildsuff="JFW100322-noLogD" 
-trainingsetsuff="JFW100322"
-writesuff="JFW100322-noLogD" #This is the suffix for ongoing work. 
+trainingsetsuff="JFW012924"
+writesuff="JFW012924-noLogD" #This is the suffix for ongoing work. 
 
 # Random number geenerator seed:
 seed <- "12345"
@@ -168,6 +168,9 @@ ps
 Endoinfo<-read.csv("Predictors/EndoSubset-EPA_PFAS_DSSTox-Similarity.csv")
 
 # Extra chemicals for Richard Judson:
+#Note thatin the file loaded into endo below, the second and third columns 
+# (CASRN and DTXSID) refer to the endogenous compound,
+#while both ENDO_CAS and ENDO_DTXSID give the DTXSID of the PFAS compound
 endo <- read.csv("Predictors/EndoSubset-EPA_PFAS_DSSTox-Similarity_final_list_OPPT.csv")
 #endo.melt <- melt(endo,id=c("CASRN","ENDO.DTXSID..EPA.PFAS."))
 #endo.cast <- dcast(subset(endo.melt,variable=="Tanimoto.Score..PubChem."),ENDO.DTXSID..EPA.PFAS.~CASRN)
@@ -201,6 +204,7 @@ for(i in SimVarsPC){
   sub=subset(Endosubset, CASRN==i, select=c("CASRN","ENDO.DTXSID..EPA.PFAS.", "Tanimoto.Score..PubChem."))
   names(sub)[2:3]=c("DTXSID", paste("TSPC_",i,sep=""))                         
   sub=sub[,-1]
+  # Discretize similarity scores to 1/0:
   sub[,2]=ifelse(is.na(sub[,2]),NA,ifelse(sub[,2]>=threshold,1,0))
   PFASdata2=merge(PFASdata2, sub, all.x=TRUE,all.y=FALSE)
 }

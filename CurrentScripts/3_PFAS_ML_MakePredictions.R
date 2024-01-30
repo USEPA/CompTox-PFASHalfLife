@@ -517,8 +517,6 @@ for (this.bin in seq(1,4))
 #To be consistent with Mansouri et al, if something is in the domain, Domain=1, if outside=0. 
 #If if its in the domain=1, if outside the doma
 #This is only using the method by Roy et al. 2015, using the descriptors that are scaled by those of the training set. So, 
-
-#May need to find some other idea of AD because apparently everythign is out of the AD now
 ADfunction=function(model, data){
   vars=names(model$trainingData)
   vars=vars[-c(length(vars))] #removes last column which is predictions
@@ -538,7 +536,7 @@ ADfunction=function(model, data){
   SIdf$SI90=SIdf$SImean + (1.28 * SIdf$SIsd)
   SIdf$Domain=1 #something is assumed to be inside the AD unless it it found to not be 
   
-  #Based Algorithm specificed in Roy et al. 2005)
+  #Based Algorithm specified in Roy et al. 2005)
   SIdf$Domain=ifelse(SIdf$SImin>3, 0, ifelse((SIdf$SImean+(1.28*SIsd))>3,0,1))
   
   return(SIdf)}

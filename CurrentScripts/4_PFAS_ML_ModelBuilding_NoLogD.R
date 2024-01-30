@@ -6,8 +6,8 @@ try(dev.off())
 #setwd("L:/Lab/NCCT_ExpoCast/ExpoCast2022/Dawson_PFAS_HALFLIFE/PFAS_HL_QSAR_2021")
 
 # Specify which RData files we are working with:
-readsuff="JFW100322" #Note, this is the suffix for previous work on this page
-writesuff="JFW100322-noLogD" #This is the suffix for ongoing work. 
+readsuff="JFW012924" #Note, this is the suffix for previous work on this page
+writesuff="JFW012924-noLogD" #This is the suffix for ongoing work. 
 
 ####Total number predictors prior to pruning:
 15:81
@@ -105,25 +105,35 @@ names(pfasds)
 
 
 #Select out predictor columns
-idcols=which(names(pfasds)%in%c("DTXSID", "CASRN", "PREFERRED_NAME"))
-HLHcol=which(names(pfasds)%in%c("HLH"))
-HLHscol=which(names(pfasds)%in%c("HLH_LSsc"))
-catcols=which(names(pfasds)%in%c("Species", "Sex", "Type", "DosingAdj"))
-#I am disincluding Maximum correlation here because of its difficulty in application to new chemicals 
+idcols <- which(names(pfasds)%in%c("DTXSID", "CASRN", "PREFERRED_NAME"))
+HLHcol <- which(names(pfasds)%in%c("HLH"))
+HLHscol <- which(names(pfasds)%in%c("HLH_LSsc"))
+catcols <- which(names(pfasds)%in%c("Species", "Sex", "Type", "DosingAdj"))
+# I am excluding Maximum correlation here because of its difficulty in 
+# application to new chemicals 
 #Endocols=c(which(names(pfasds)%in%c("MaxEndoPC", "MaxEndoM")), which(grepl('\\TS', names(pfasds))==TRUE) )
-Endocols=which(grepl('\\TS', names(pfasds))==TRUE)
+Endocols <- which(grepl('\\TS', names(pfasds))==TRUE)
 
-KDcols=which(names(pfasds)%in%c("Kd_hL_FABP"))
-CMCcols=which(names(pfasds)%in%c("CMC_Pred"))
-KAcols=which(names(pfasds)%in%c("Ka_perM_SerAlb_Han"))
-Kidneycols=which(names(pfasds)%in%c("BW", "KW", "Neph_Num","KW_BW_ratio","Neph_BW_ratio", "GlomSA",                       
-"GlomTotSA", "GlomTotSA_BW_ratio", "GlomTotSA_KW_ratio", "ProxTubLen", "ProxTubDiam", "ProxTubVol",                   
-"ProxTubSA" , "ProxTubTotalVol", "ProxTubTotSA", "GlomTotSA_ProxTubTotVol_ratio", "ProxTubTotSA_ProxTotVol_ratio"))
+KDcols <- which(names(pfasds)%in%c("Kd_hL_FABP"))
+CMCcols <- which(names(pfasds)%in%c("CMC_Pred"))
+KAcols <- which(names(pfasds)%in%c("Ka_perM_SerAlb_Han"))
+Kidneycols <- which(names(pfasds)%in%c("BW", "KW", "Neph_Num","KW_BW_ratio",
+                                        "Neph_BW_ratio", "GlomSA",                       
+                                        "GlomTotSA", "GlomTotSA_BW_ratio", 
+                                        "GlomTotSA_KW_ratio", "ProxTubLen", 
+                                        "ProxTubDiam", "ProxTubVol",                   
+                                        "ProxTubSA" , "ProxTubTotalVol", 
+                                        "ProxTubTotSA", 
+                                        "GlomTotSA_ProxTubTotVol_ratio", 
+                                        "ProxTubTotSA_ProxTotVol_ratio"))
 #operacols=c(which(names(pfasds)=="AVERAGE_MASS"), which(grepl('\\AD_' , names(pfasds)) |  grepl('\\_pred$' , names(pfasds)))) #Note, the grepl command here is looking for "_pred", you have to preceed this with // to look for this literal. Also, the $ is an end of line anchor
-operacols=c(which(names(pfasds)=="AVERAGE_MASS"), which(grepl('\\_pred$' , names(pfasds)))) #Note, the grepl command here is looking for "_pred", you have to preceed this with // to look for this literal. Also, the $ is an end of line anchor
-COCcols=which(names(pfasds)=="COC_aliphatic")
-removekidneypreds=which(names(pfasds)%in%c("Log10Neph_Num_pred", "GlomSA_pred", "ProxTubLen_pred", "ProxTubDiam_pred"))
-operacols=operacols[-c(which(operacols%in%removekidneypreds))]
+operacols <- c(which(names(pfasds)=="AVERAGE_MASS"), 
+            which(grepl('\\_pred$' , names(pfasds)))) #Note, the grepl command here is looking for "_pred", you have to preceed this with // to look for this literal. Also, the $ is an end of line anchor
+COCcols <- which(names(pfasds)=="COC_aliphatic")
+removekidneypreds <- which(names(pfasds)%in%c("Log10Neph_Num_pred", 
+                                              "GlomSA_pred", "ProxTubLen_pred", 
+                                              "ProxTubDiam_pred"))
+operacols <- operacols[-c(which(operacols%in%removekidneypreds))]
 
 
 
@@ -146,8 +156,19 @@ Endodisc=ifelse(Endodisc>=simthreshold, 1,0)
 #####Pulling out numeric variables
 ##Removing CMC because relies on dragon predictor
 #allvariablemat=data.frame("HLH"=pfasds[,HLHcol],pfasds[,catcols], Endodisc, "Kd_hL_FABP"=pfasds[,KDcols], "CMC_Pred"= pfasds[,CMCcols], "Ka_perM_SerAlb_Han"=pfasds[,KAcols], pfasds[,Kidneycols], pfasds[,operacols],"COC_aliphatic"= pfasds[, COCcols])
-allvariablemat=data.frame("HLH"=pfasds[,HLHcol],pfasds[,catcols], Endodisc, "Kd_hL_FABP"=pfasds[,KDcols], "Ka_perM_SerAlb_Han"=pfasds[,KAcols], pfasds[,Kidneycols], pfasds[,operacols],"COC_aliphatic"= pfasds[, COCcols])
-numvariablemat=data.frame("HLH"=pfasds[,HLHcol], Endodisc, "Kd_hL_FABP"=pfasds[,KDcols], "Ka_perM_SerAlb_Han" = pfasds[,KAcols], pfasds[,Kidneycols], pfasds[,operacols],"COC_aliphatic"= pfasds[, COCcols])
+allvariablemat <- data.frame("HLH"=pfasds[,HLHcol],
+                             pfasds[,catcols], Endodisc, 
+                             "Kd_hL_FABP"=pfasds[,KDcols], 
+                             "Ka_perM_SerAlb_Han"=pfasds[,KAcols], 
+                             pfasds[,Kidneycols], 
+                             pfasds[,operacols],
+                             "COC_aliphatic"= pfasds[, COCcols])
+numvariablemat <- data.frame("HLH"=pfasds[,HLHcol], 
+                             Endodisc, 
+                             "Kd_hL_FABP" = pfasds[,KDcols], 
+                             "Ka_perM_SerAlb_Han" = pfasds[,KAcols], 
+                             pfasds[,Kidneycols], pfasds[,operacols],
+                             "COC_aliphatic"= pfasds[, COCcols])
 
 #Cleaning out low variance variables 
 deletevarlist=NULL
@@ -638,7 +659,7 @@ pfasdsfitted$ClassPredFull=classpredfull
 # pfasdsfitted$RegPredFull_PerLF=pfasdsfitted$RegPredFull/pfasdsfitted$HrLifeSpan
 # pfasdsfitted$RegPredRed_PerLF=pfasdsfitted$RegPredRed/pfasdsfitted$HrLifeSpan
 
-##Calcuate means for each bin for empirical data
+##Calculate means for each bin for empirical data
 HLHBin4<-cut(HLH, breaks=c(0,12, 168, 1440,Inf), labels=c(1,2,3,4)) #this breaks down to half day, half-day to 1 week, 1 week and 2 months, and >2 months 
 agtabHLH=aggregate(HLH~HLHBin4,data=pfasdsfitted, FUN="median")
 pfasdsfitted$HLHBin4=HLHBin4
@@ -730,6 +751,8 @@ obsplot=ObsPredPlotRFClassFull_Chem_Species +
   geom_hline(yintercept=24,linetype="dashed", color = "red") +
   geom_hline(yintercept=168, linetype="dashed", color = "blue") + 
   geom_hline(yintercept=1440,linetype="dashed", color = "black") 
+
+save(pfasdsfitted, file=paste0("RData/TrainingDatawithPreds_Bin_4_", writesuff,".RData"))
 
 jpeg(paste("Figures/ObsvPred_RFClassPredFull_andRed_by_Species_Chem_",
            writesuff,".jpg",sep=""), width=1200, height=744)
@@ -951,7 +974,7 @@ ggplot(pfasds, aes(x=LogVP_pred, y=log(HLH+1))) +
 ggtitle(expression(paste("Log ",italic("t")[1/2], " as a function of Log Vapor Pressure")))
 
 #Look at correlations with top 5 predictors 
-d=pfasdsredsc_ds
+d <- pfasdsredsc_ds
 #plot(pfasds)
 plot(pfasds$AVERAGE_MASS, log(pfasds$HLH))
 cor.test(pfasds$AVERAGE_MASS, log(pfasds$HLH), method="spearman") #0.71
@@ -965,7 +988,7 @@ cor.test((pfasds$LogVP_pred),log(pfasds$HLH), method="spearman") #-40
 #cor.test(d$Kd_hL_FABP, log(pfasds$HLH), method="spearman")#-0.18
 plot(d$LogP_pred, log(pfasds$HLH))
 cor.test(d$LogP_pred, log(pfasds$HLH), method="spearman")#-0.18
-plot(d$COC_aliphatic, log(pfasds$HLH))
-cor.test(d$COC_aliphatic, log(pfasds$HLH), method="spearman")#-0.18
+#plot(d$COC_aliphatic, log(pfasds$HLH))
+#cor.test(d$COC_aliphatic, log(pfasds$HLH), method="spearman")#-0.18
 
 plot((pfasds$`TSPC_142-62-1`),log(pfasds$HLH))

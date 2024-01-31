@@ -24,14 +24,14 @@ try(dev.off())
 
 ## Specify which RData files we are working with:
 ```{r configure_files}
-OUTPUTFILE <- "new_inv_Dawson2023"
-NEWPFASINFO <- "new_inv.csv"
-INFO.SMILES.COL <- "QSAR_READY_SMILES"
-NEWPFASOPERA <- "new_inv.csv"
-OPERA.ID.COL <- "DTXSID"
-NEWPFASENDO <- "EndoSubset-EPA_PFAS_DSSTox-Similarity_Tox21_102021_120723.csv"
-ENDO.CAS.COL <- "ENDO.CASRN"
-NEWPFASTOXPRINT <- "toxprint_v2_vs_PFAStoPred.tsv"
+OUTPUTFILE <- "new_invivo_Dawson2023"
+NEWPFASINFO <- "threewithinvivo.csv"
+INFO.SMILES.COL <- "SMILES"
+NEWPFASOPERA <- "PFAStoPred-smi_OPERA2.9Pred.csv"
+OPERA.ID.COL <- "MoleculeID"
+NEWPFASENDO <- "EndoSubset-EPA_PFAS_DSSTox-Similarity_Wambaugh_113023.csv"
+ENDO.CAS.COL <- "ENDO.CASRN..EPA.PFAS."
+NEWPFASTOXPRINT <- "threewithinvivo-toxprints.tsv"
 ```
 
 ## Load Dawson (2023) Model

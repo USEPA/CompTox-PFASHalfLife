@@ -2,7 +2,7 @@
 """
 Created on Mon Apr 20 12:45:41 2020
 
-@author: ppradeep
+@author: ppradeep 
 
 ----------------------------------------------------------------------------------------
 This script runs different machine learning algorithms on the dataset to find the best 
@@ -18,14 +18,16 @@ import pubchempy as pcp
 from rdkit import DataStructs, Chem
 from rdkit.Chem import AllChem
 
-path = 'C:/Users/ppradeep/Desktop/PFASsimilarity/'
-
+#path = 'C:/Users/ppradeep/Desktop/PFASsimilarity/'
+path = 'C:/Users/rtorne02/OneDrive - Environmental Protection Agency (EPA)/PFAS Project Share/PFAS_Similarity/'
       
 #%%
 ###########################################################################
 ## 1. Load the test chemicals
 ###########################################################################
-dawsonAll = pd.read_excel(path+'data/Dawson_SimEndChems_frommodel_DED05082020.xlsx', index_col='CASRN') 
+#dawsonAll = pd.read_excel(path+'data/Dawson_SimEndChems_frommodel_DED05082020.xlsx', index_col='CASRN')  -----can't find this file from Pradeep
+#dawsonAll = pd.read_excel(path+'PFAS_HL_QSAR/SimEndChems_frommodel_DED042820.xlsx', index_col='CASRN') 
+dawsonAll = pd.read_excel(path+'input/SimEndChems_frommodel_DED05272020_SMILES.xlsx', index_col='CASRN') 
 
 ###########################################################################
 ## 2. Replace 'F' by 'H' in the test chemicals SMILES
@@ -49,9 +51,14 @@ for cas in dawsonAll.index:
     # Morgan FP
     try:
         smile_m=smile.replace("(",'').replace(")",'').replace("=",'').replace("H",'')
-        m = Chem.MolFromSmiles(smile_m)
+        #m = Chem.MolFromSmiles(smile_m)
         #m = Chem.MolFromSmiles(smile)
-        dawsonAll.loc[cas,'MorganFP'] = m
+        #dawsonAll.loc[cas,'MorganFP'] = m
+   ### RTV Edit:   
+        molobj= Chem.MolFromSmiles(smile_m)
+        morFP = AllChem.GetMorganFingerprintAsBitVect(molobj, radius=2, nBits=1024)  # Adjust radius and nBits as needed
+        bit_string = morFP.ToBitString()
+        dawsonAll.loc[cas,'MorganFP'] = bit_string    
     except:
         print("Morgan FP not calculated for %s" %cas)
   
@@ -61,7 +68,13 @@ for cas in dawsonAll.index:
 ## These were calculated earlier in the same way as calculated for the
 ## test chemicals
 ###########################################################################
-endoMetaAll = pd.read_csv(path+'data/EPA-PFAS_DSSTox_wFPs.csv', index_col='CASRN') 
+
+#endoMetaAll = pd.read_csv(path+'data/EPA-PFAS_DSSTox_wFPs.csv', index_col='CASRN') 
+#endoMetaAll = pd.read_csv(path+'PFAS_HL_QSAR/EPA-PFAS_DSSTox_wFPs.csv', index_col='CASRN') 
+#endoMetaAll = pd.read_csv(path+'output/final_list_OPPT_QSAR-ready_smi_500_wFP.csv', index_col='CASRN') 
+#endoMetaAll = pd.read_csv(path+'output/final_list_OPPT_QSAR-ready_smi_wFP.csv', index_col='CASRN') 
+#endoMetaAll = pd.read_csv(path+'input/Patlewicz_112923_QSAR-ready_smi_wFP.csv', index_col='CASRN') 
+endoMetaAll = pd.read_csv(path+'input/Patlewicz_112923_QSAR-ready_smi_wFP.csv', index_col='CASRN') 
 
 #%%
 ###########################################################################
@@ -76,7 +89,11 @@ for cas1 in dawsonAll.index:
         pfp1 = DataStructs.CreateFromBitString(dawsonAll.loc[cas1, 'PubChemFP'])
     except:
         pass          
-    mfp1 = AllChem.GetMorganFingerprintAsBitVect(dawsonAll.loc[cas1, 'MorganFP'],2,nBits=1024)
+    #mfp1 = AllChem.GetMorganFingerprintAsBitVect(dawsonAll.loc[cas1, 'MorganFP'],2,nBits=1024)
+    try:
+        mfp1 = DataStructs.CreateFromBitString(dawsonAll.loc[cas1, 'MorganFP'])
+    except:    
+        pass 
     for cas2 in endoMetaAll.index:
         i=i+1            
         similarity.loc[i,'CASRN'] = cas1
@@ -89,15 +106,28 @@ for cas1 in dawsonAll.index:
             similarity.loc[i,'Tanimoto Score (PubChem)'] = pscore
         except:
             pass#print("PubChem FP Similarity not calculated for %s-%s" %(cas1,cas2))
+        
         try:
-            mfp2 = AllChem.GetMorganFingerprintAsBitVect(endoMetaAll.loc[cas2, 'MorganFP'],2,nBits=1024)
-            mscore = DataStructs.FingerprintSimilarity(mfp1, mfp2)
-            similarity.loc[i,'Tanimoto Score (Morgan)'] = mscore
-        except:
-            pass#print("Morgan FP Similarity not calculated for %s-%s" %(cas1,cas2))
+           # mfp2 = AllChem.GetMorganFingerprintAsBitVect(endoMetaAll.loc[cas2, 'MorganFP'],2,nBits=1024)
+           # mscore = DataStructs.FingerprintSimilarity(mfp1, mfp2)
+           # similarity.loc[i,'Tanimoto Score (Morgan)'] = mscore
+             mfp2 = DataStructs.CreateFromBitString(endoMetaAll.loc[cas2, 'MorganFP'])
+             mscore = DataStructs.FingerprintSimilarity(mfp1, mfp2)
+             similarity.loc[i,'Tanimoto Score (Morgan)'] = mscore 
+        except Exception as error:
+               print(type(error).__name__)
+               #pass#print("Morgan FP Similarity not calculated for %s-%s" %(cas1,cas2)) 
+            
 
 #%%
 ###########################################################################
 ## 6. Save the similarity file to disk
 ###########################################################################  
-similarity.to_csv(path+'output\EndoSubset-EPA_PFAS_DSSTox-Similarity.csv', index_label = 'Row Number')
+
+#similarity.to_csv(path+'output\EndoSubset-EPA_PFAS_DSSTox-Similarity.csv', index_label = 'Row Number')
+#similarity.to_csv(path+'EndoSubset-EPA_PFAS_DSSTox-Similarity.csv', index_label = 'Row Number')
+#similarity.to_csv(path+'output/EndoSubset-EPA_PFAS_DSSTox-Similarity_final_list_OPPT_500.csv', index_label = 'Row Number')
+#similarity.to_csv(path+'output/EndoSubset-EPA_PFAS_DSSTox-Similarity_final_list_OPPT.csv', index_label = 'Row Number')
+#similarity.to_csv(path+'output/EndoSubset-EPA_PFAS_DSSTox-Similarity_Patlewicz500_112923test.csv', index_label = 'Row Number')
+similarity.to_csv(path+'output/EndoSubset-EPA_PFAS_DSSTox-Similarity_Patlewicz_112923_.csv', index_label = 'Row Number')
+

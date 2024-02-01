@@ -29,8 +29,9 @@ NEWPFASINFO <- "new_inv.csv"
 INFO.SMILES.COL <- "QSAR_READY_SMILES"
 NEWPFASOPERA <- "new_inv.csv"
 OPERA.ID.COL <- "DTXSID"
-NEWPFASENDO <- "EndoSubset-EPA_PFAS_DSSTox-Similarity_Tox21_102021_120723.csv"
-ENDO.CAS.COL <- "ENDO.CASRN"
+NEWPFASENDO <- "EndoSubset-EPA_PFAS_DSSTox-Similarity_Patlewicz_113023.csv"
+# Column with the CAS number for endogenous ligands:
+ENDO.CAS.COL <- "ENDO.CASRN..EPA.PFAS."
 NEWPFASTOXPRINT <- "toxprint_v2_vs_PFAStoPred.tsv"
 ```
 
@@ -132,7 +133,7 @@ for (this.cas in needed.endo)
                      gsub("-","\\.",this.cas))
       pfastopred[pfastopred$DTXSID==this.id, col.name] <-
       ifelse(as.numeric(endo.vals[endo.vals$DTXSID==this.id &
-                endo.vals$ENDO.CASRN==this.cas,
+                endo.vals[,ENDO.CAS.COL] == this.cas,
                 "Tanimoto.Score..PubChem."]) > ENDO.THRESHOLD,
              1,
              0)
@@ -146,8 +147,10 @@ for (this.cas in needed.endo)
 han.binding <- as.data.frame(read_excel(
   "Predictors/Han_et al.2012_AlbuminProteinBinding_Data.xlsx"))
 
-pfastopred$Ka_perM_SerAlb_Han <- NA
+# Initialize to NA
+pfastopred[,"Ka_perM_SerAlb_Han"] <- NA
 
+# Replace any NA's if we have measurments (very few chemicals)
 for (this.chem in sort(unique(pfastopred$DTXSID)))
   if (this.chem %in% han.binding$DTXSID)
   {
